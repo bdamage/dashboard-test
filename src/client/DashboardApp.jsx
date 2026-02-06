@@ -28,7 +28,8 @@ export default function DashboardApp() {
     priority: '',
     category: '',
     assignmentGroup: '',
-    slaType: ''
+    slaType: '',
+    recordLimit: 2000
   });
   const [loading, setLoading] = useState(false);
   const [lastUpdated, setLastUpdated] = useState(new Date());

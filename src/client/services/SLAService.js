@@ -27,7 +27,8 @@ export class SLAService {
 
       console.log('SLA query:', query);
 
-      const response = await fetch(`${this.baseUrl}?sysparm_query=${encodeURIComponent(query)}&sysparm_display_value=all&sysparm_fields=sys_id,task,sla,stage,has_breached,percentage&sysparm_limit=500`, {
+      const limit = filters.recordLimit || 2000;
+      const response = await fetch(`${this.baseUrl}?sysparm_query=${encodeURIComponent(query)}&sysparm_display_value=all&sysparm_fields=sys_id,task,sla,stage,has_breached,percentage&sysparm_limit=${limit}`, {
         headers: {
           "Accept": "application/json",
           "Content-Type": "application/json",

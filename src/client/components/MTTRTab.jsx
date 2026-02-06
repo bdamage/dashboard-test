@@ -117,6 +117,11 @@ export default function MTTRTab({ filters, lastUpdated, services, onLoadingChang
       .slice(0, 5);
   };
 
+  const getIncidentUrl = (incidentNumber) => {
+    // ServiceNow incident URL format
+    return `/nav_to.do?uri=incident.do?sysparm_query=number=${incidentNumber}`;
+  };
+
   if (error) {
     return (
       <div className="mttr-tab error-state">
@@ -246,7 +251,15 @@ export default function MTTRTab({ filters, lastUpdated, services, onLoadingChang
           <h3><Award size={20} style={{display: 'inline', marginRight: '8px', verticalAlign: 'middle'}} />Fastest Resolutions</h3>
           {getTopPerformers().map(incident => (
             <div key={value(incident.sys_id)} className="performance-item">
-              <span className="incident-number">{display(incident.number)}</span>
+              <a
+                href={getIncidentUrl(display(incident.number))}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="incident-link"
+                title="Click to open incident in ServiceNow"
+              >
+                {display(incident.number)}
+              </a>
               <span className="incident-mttr">{formatDuration(incident.mttr)}</span>
               <span className={`priority-badge p${display(incident.priority)}`}>
                 P{display(incident.priority)}
@@ -259,7 +272,15 @@ export default function MTTRTab({ filters, lastUpdated, services, onLoadingChang
           <h3><Timer size={20} style={{display: 'inline', marginRight: '8px', verticalAlign: 'middle'}} />Longest Resolutions</h3>
           {getSlowResolvers().map(incident => (
             <div key={value(incident.sys_id)} className="performance-item">
-              <span className="incident-number">{display(incident.number)}</span>
+              <a
+                href={getIncidentUrl(display(incident.number))}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="incident-link"
+                title="Click to open incident in ServiceNow"
+              >
+                {display(incident.number)}
+              </a>
               <span className="incident-mttr">{formatDuration(incident.mttr)}</span>
               <span className={`priority-badge p${display(incident.priority)}`}>
                 P{display(incident.priority)}

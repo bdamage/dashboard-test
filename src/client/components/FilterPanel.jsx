@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Filter } from 'lucide-react';
 import { getDateRange } from '../utils/dateUtils.js';
 import './FilterPanel.css';
 
@@ -29,6 +30,14 @@ export default function FilterPanel({ filters, onFilterChange, loading }) {
     { value: 'inquiry', label: 'Inquiry' }
   ];
 
+  const recordLimitOptions = [
+    { value: 500, label: '500 records' },
+    { value: 1000, label: '1,000 records' },
+    { value: 2000, label: '2,000 records' },
+    { value: 5000, label: '5,000 records' },
+    { value: 10000, label: '10,000 records' }
+  ];
+
   const handleDateRangeChange = (days) => {
     const dateRange = days ? getDateRange(days) : null;
     onFilterChange({ dateRange });
@@ -53,12 +62,12 @@ export default function FilterPanel({ filters, onFilterChange, loading }) {
   return (
     <div className={`filter-panel ${isExpanded ? 'expanded' : ''}`}>
       <div className="filter-header">
-        <button 
+        <button
           className="filter-toggle"
           onClick={() => setIsExpanded(!isExpanded)}
           disabled={loading}
         >
-          🔍 Filters {hasActiveFilters && <span className="filter-indicator">●</span>}
+          <Filter size={16} style={{display: 'inline', marginRight: '6px', verticalAlign: 'middle'}} />Filters {hasActiveFilters && <span className="filter-indicator">●</span>}
           <span className={`arrow ${isExpanded ? 'up' : 'down'}`}>▼</span>
         </button>
         {hasActiveFilters && (
@@ -128,6 +137,21 @@ export default function FilterPanel({ filters, onFilterChange, loading }) {
               placeholder="Enter group name"
               disabled={loading}
             />
+          </div>
+
+          <div className="filter-group">
+            <label>Record Limit:</label>
+            <select
+              value={filters.recordLimit || 2000}
+              onChange={(e) => handleFilterChange('recordLimit', parseInt(e.target.value))}
+              disabled={loading}
+            >
+              {recordLimitOptions.map(option => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
           </div>
         </div>
       )}

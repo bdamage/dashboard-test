@@ -1,5 +1,6 @@
 // Simplified Incident Service for ITSM Dashboard
 import { getLast120Days } from '../utils/dateUtils.js';
+import { display } from '../utils/fields.js';
 
 export class IncidentService {
   constructor() {
@@ -31,7 +32,8 @@ export class IncidentService {
 
       console.log('Incident query:', query);
 
-      const response = await fetch(`${this.baseUrl}?sysparm_query=${encodeURIComponent(query)}&sysparm_display_value=all&sysparm_limit=500&sysparm_fields=sys_id,number,short_description,priority,state,category,assigned_to,sys_created_on`, {
+      const limit = filters.recordLimit || 2000;
+      const response = await fetch(`${this.baseUrl}?sysparm_query=${encodeURIComponent(query)}&sysparm_display_value=all&sysparm_limit=${limit}&sysparm_fields=sys_id,number,short_description,priority,state,category,assigned_to,sys_created_on`, {
         headers: {
           "Accept": "application/json",
           "Content-Type": "application/json",
@@ -61,9 +63,9 @@ export class IncidentService {
     try {
       const incidents = await this.getOpenIncidents(filters);
       const counts = { P1: 0, P2: 0, P3: 0, P4: 0 };
-      
+
       incidents.forEach(incident => {
-        const priority = incident.priority?.display_value || incident.priority || '4';
+        const priority = display(incident.priority) || '4';
         const key = `P${priority}`;
         if (counts.hasOwnProperty(key)) {
           counts[key]++;
@@ -116,7 +118,8 @@ export class IncidentService {
         query += `^category=${filters.category}`;
       }
 
-      const response = await fetch(`${this.baseUrl}?sysparm_query=${encodeURIComponent(query)}&sysparm_display_value=all&sysparm_limit=500&sysparm_fields=sys_id,number,sys_created_on,resolved_at,priority,category`, {
+      const limit = filters.recordLimit || 2000;
+      const response = await fetch(`${this.baseUrl}?sysparm_query=${encodeURIComponent(query)}&sysparm_display_value=all&sysparm_limit=${limit}&sysparm_fields=sys_id,number,sys_created_on,resolved_at,priority,category`, {
         headers: {
           "Accept": "application/json",
           "Content-Type": "application/json",

@@ -79,6 +79,16 @@ export default function IncidentTab({ filters, lastUpdated, services, onLoadingC
     return colors[priority] || 'info';
   };
 
+  const getIncidentUrl = (incidentNumber) => {
+    // ServiceNow incident URL format
+    return `/nav_to.do?uri=incident.do?sysparm_query=number=${incidentNumber}`;
+  };
+
+  const openIncident = (incidentNumber, incidentSysId) => {
+    const url = getIncidentUrl(incidentNumber);
+    window.open(url, '_blank', 'noopener,noreferrer');
+  };
+
   if (error) {
     return (
       <div className="incident-tab error-state">
@@ -158,7 +168,15 @@ export default function IncidentTab({ filters, lastUpdated, services, onLoadingC
                         <PriorityIcon size={12} />
                         P{priority}
                       </span>
-                      {display(incident.number)}
+                      <a
+                        href={getIncidentUrl(display(incident.number))}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="incident-link"
+                        title="Click to open incident in ServiceNow"
+                      >
+                        {display(incident.number)}
+                      </a>
                     </div>
                     <div className="incident-description">
                       {display(incident.short_description)}
