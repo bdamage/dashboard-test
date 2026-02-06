@@ -114,7 +114,15 @@ export default function IncidentTab({ filters, lastUpdated, services, onLoadingC
       return '4'; // Default to P4
     }
 
-    const priority = display(incident.priority);
+    // Use value() to get numeric priority, fallback to display() then extract number
+    let priority = value(incident.priority) || display(incident.priority) || '4';
+
+    // Extract numeric part if priority includes label (e.g., "4 - Low" -> "4")
+    const numericMatch = String(priority).match(/^(\d+)/);
+    if (numericMatch) {
+      return numericMatch[1];
+    }
+
     return priority || '4';
   };
 

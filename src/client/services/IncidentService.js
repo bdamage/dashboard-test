@@ -93,9 +93,10 @@ export class IncidentService {
       // Handle multiple priority field formats
       let priorityValue = null;
 
-      // Case 1: priority is an object with display_value
+      // Case 1: priority is an object with display_value and value
       if (incident.priority && typeof incident.priority === 'object') {
-        priorityValue = incident.priority.display_value || incident.priority.value;
+        // Prefer 'value' (numeric) over 'display_value' (may include label like "4 - Low")
+        priorityValue = incident.priority.value || incident.priority.display_value;
       }
       // Case 2: priority is a plain string
       else if (typeof incident.priority === 'string') {
@@ -113,6 +114,13 @@ export class IncidentService {
 
       // Normalize to string and trim
       priorityValue = String(priorityValue || '4').trim();
+
+      // Extract numeric part if priority includes label (e.g., "4 - Low" -> "4")
+      const numericMatch = priorityValue.match(/^(\d+)/);
+      if (numericMatch) {
+        priorityValue = numericMatch[1];
+      }
+
       priorityValues.push(priorityValue);
 
       const key = `P${priorityValue}`;
