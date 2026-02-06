@@ -50,6 +50,17 @@ export class IncidentService {
 
       const data = await response.json();
       const results = data.result || [];
+
+      // DIAGNOSTIC: Log first incident to inspect data structure
+      if (results.length > 0) {
+        console.log('[ITSM] Sample incident data structure:', {
+          fullRecord: results[0],
+          priority: results[0].priority,
+          priorityType: typeof results[0].priority,
+          hasPriority: !!results[0].priority
+        });
+      }
+
       logApiSuccess(SVC, 'getOpenIncidents', {
         recordCount: results.length,
         durationMs: Math.round(performance.now() - t0),
@@ -73,12 +84,50 @@ export class IncidentService {
     const incidents = await this.getOpenIncidents(filters);
     const counts = { P1: 0, P2: 0, P3: 0, P4: 0 };
 
-    incidents.forEach(incident => {
-      const priority = display(incident.priority) || '4';
-      const key = `P${priority}`;
+    console.log(`[ITSM] Processing ${incidents.length} incidents for priority counting`);
+
+    let invalidPriorities = 0;
+    const priorityValues = [];
+
+    incidents.forEach((incident, index) => {
+      // Handle multiple priority field formats
+      let priorityValue = null;
+
+      // Case 1: priority is an object with display_value
+      if (incident.priority && typeof incident.priority === 'object') {
+        priorityValue = incident.priority.display_value || incident.priority.value;
+      }
+      // Case 2: priority is a plain string
+      else if (typeof incident.priority === 'string') {
+        priorityValue = incident.priority;
+      }
+      // Case 3: priority is missing or null
+      else {
+        console.warn(`[ITSM] Incident ${index} has no priority:`, {
+          incident_number: display(incident.number),
+          priority_field: incident.priority
+        });
+        invalidPriorities++;
+        priorityValue = '4'; // Default to P4
+      }
+
+      // Normalize to string and trim
+      priorityValue = String(priorityValue || '4').trim();
+      priorityValues.push(priorityValue);
+
+      const key = `P${priorityValue}`;
       if (counts.hasOwnProperty(key)) {
         counts[key]++;
+      } else {
+        console.warn(`[ITSM] Unexpected priority value: "${priorityValue}" for incident ${display(incident.number)}`);
       }
+    });
+
+    console.log('[ITSM] Priority count results:', {
+      counts,
+      totalIncidents: incidents.length,
+      invalidPriorities,
+      uniquePriorityValues: [...new Set(priorityValues)]
     });
 
     return counts;

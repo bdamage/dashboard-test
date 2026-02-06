@@ -46,6 +46,26 @@ export default function IncidentTab({ filters, lastUpdated, services, onLoadingC
         timeSeries: timeSeriesData
       });
 
+      // DIAGNOSTIC: Log priority distribution
+      console.log('[ITSM] IncidentTab data loaded:', {
+        openIncidentsCount: openIncidents.length,
+        priorityCounts,
+        hasNoPriorityData: Object.values(priorityCounts).every(count => count === 0),
+        samplePriorities: openIncidents.slice(0, 5).map(inc => ({
+          number: display(inc.number),
+          priority: inc.priority,
+          priorityDisplay: display(inc.priority)
+        }))
+      });
+
+      // Warn if all priority counts are zero but we have incidents
+      if (Object.values(priorityCounts).every(count => count === 0) && openIncidents.length > 0) {
+        console.error('[ITSM] WARNING: Have incidents but all priority counts are zero!', {
+          incidentCount: openIncidents.length,
+          firstIncident: openIncidents[0]
+        });
+      }
+
       logTabLoad('Incidents', {
         durationMs: Math.round(performance.now() - t0),
         dataSummary: {
@@ -87,6 +107,15 @@ export default function IncidentTab({ filters, lastUpdated, services, onLoadingC
   const getIncidentUrl = (incidentNumber) => {
     // ServiceNow incident URL format
     return `/nav_to.do?uri=incident.do?sysparm_query=number=${incidentNumber}`;
+  };
+
+  const getSafePriority = (incident) => {
+    if (!incident || !incident.priority) {
+      return '4'; // Default to P4
+    }
+
+    const priority = display(incident.priority);
+    return priority || '4';
   };
 
   if (error) {
@@ -153,11 +182,14 @@ export default function IncidentTab({ filters, lastUpdated, services, onLoadingC
           <h3>Recent High Priority Incidents</h3>
           <div className="incidents-table">
             {incidentData.openIncidents
-              .filter(incident => ['1', '2'].includes(display(incident.priority)))
+              .filter(incident => {
+                const priority = display(incident.priority);
+                return priority && ['1', '2'].includes(priority);
+              })
               .sort((a, b) => new Date(display(b.sys_created_on)) - new Date(display(a.sys_created_on)))
               .slice(0, 10)
               .map(incident => {
-                const priority = display(incident.priority);
+                const priority = getSafePriority(incident);
                 const PriorityIcon = getPriorityIcon(`P${priority}`);
                 
                 return (

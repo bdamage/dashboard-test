@@ -156,23 +156,29 @@
   color: white;
   text-align: center;
   min-width: 25px;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
 }
 
 .priority-badge.p1 {
-  background: #f44336;
+  background: var(--error);
+  color: white;
 }
 
 .priority-badge.p2 {
-  background: #FF9800;
+  background: var(--warning);
+  color: white;
 }
 
 .priority-badge.p3 {
-  background: #FFC107;
-  color: var(--text-primary);
+  background: var(--info);
+  color: white;
 }
 
 .priority-badge.p4 {
-  background: #4CAF50;
+  background: var(--success);
+  color: white;
 }
 
 .incident-description {
