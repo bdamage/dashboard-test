@@ -24,7 +24,7 @@ export default function SLATab({ filters, lastUpdated, services, onLoadingChange
       onLoadingChange(true);
       setError(null);
 
-      const [complianceRate, breaches, performance, slaTypes] = await Promise.all([
+      const [complianceRate, breaches, performanceRecords, slaTypes] = await Promise.all([
         services.sla.getSLAComplianceRate(filters),
         services.sla.getSLABreaches(filters),
         services.sla.getSLAPerformance(filters),
@@ -34,7 +34,7 @@ export default function SLATab({ filters, lastUpdated, services, onLoadingChange
       setSlaData({
         complianceRate,
         breaches,
-        performance,
+        performance: performanceRecords,
         slaTypes
       });
 
@@ -43,7 +43,7 @@ export default function SLATab({ filters, lastUpdated, services, onLoadingChange
         dataSummary: {
           'compliance rate': `${complianceRate.rate}% (${complianceRate.compliant}/${complianceRate.total})`,
           'breaches': `${breaches.length} records`,
-          'performance records': `${performance.length} records`,
+          'performance records': `${performanceRecords.length} records`,
           'sla types': `${slaTypes.length} types`
         }
       });
