@@ -1,6 +1,6 @@
 // Simplified Incident Service for ITSM Dashboard
 import { getLast120Days } from '../utils/dateUtils.js';
-import { display } from '../utils/fields.js';
+import { display, sanitizeQueryValue } from '../utils/fields.js';
 
 export class IncidentService {
   constructor() {
@@ -8,29 +8,24 @@ export class IncidentService {
     this.baseUrl = `/api/now/table/${this.tableName}`;
   }
 
-  // Simplified query builder
   buildDateQuery(start, end) {
-    // Use ISO date format instead of JavaScript functions
     return `sys_created_on>=${start}^sys_created_on<=${end}`;
   }
 
-  // Get open incidents with simplified filtering
   async getOpenIncidents(filters = {}) {
     try {
       const { start, end } = filters.dateRange || getLast120Days();
       let query = this.buildDateQuery(start, end) + '^active=true';
-      
+
       if (filters.priority) {
-        query += `^priority=${filters.priority}`;
+        query += `^priority=${sanitizeQueryValue(filters.priority)}`;
       }
       if (filters.category) {
-        query += `^category=${filters.category}`;
+        query += `^category=${sanitizeQueryValue(filters.category)}`;
       }
       if (filters.assignmentGroup) {
-        query += `^assignment_group.name=${filters.assignmentGroup}`;
+        query += `^assignment_group.name=${sanitizeQueryValue(filters.assignmentGroup)}`;
       }
-
-      console.log('Incident query:', query);
 
       const limit = filters.recordLimit || 2000;
       const response = await fetch(`${this.baseUrl}?sysparm_query=${encodeURIComponent(query)}&sysparm_display_value=all&sysparm_limit=${limit}&sysparm_fields=sys_id,number,short_description,priority,state,category,assigned_to,sys_created_on`, {
@@ -42,80 +37,56 @@ export class IncidentService {
       });
 
       if (!response.ok) {
-        const errorText = await response.text();
-        console.error('Incident API Error:', response.status, errorText);
-        throw new Error(`HTTP ${response.status}: ${errorText}`);
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
       }
 
       const data = await response.json();
-      console.log('Incidents loaded:', data.result?.length || 0);
       return data.result || [];
 
     } catch (error) {
-      console.error('Failed to fetch incidents:', error);
-      // Return mock data for demo purposes
+      console.warn('Failed to fetch incidents, using demo data:', error.message);
       return this.getMockIncidents();
     }
   }
 
-  // Get incident counts by priority
   async getIncidentCountsByPriority(filters = {}) {
-    try {
-      const incidents = await this.getOpenIncidents(filters);
-      const counts = { P1: 0, P2: 0, P3: 0, P4: 0 };
+    const incidents = await this.getOpenIncidents(filters);
+    const counts = { P1: 0, P2: 0, P3: 0, P4: 0 };
 
-      incidents.forEach(incident => {
-        const priority = display(incident.priority) || '4';
-        const key = `P${priority}`;
-        if (counts.hasOwnProperty(key)) {
-          counts[key]++;
-        }
-      });
+    incidents.forEach(incident => {
+      const priority = display(incident.priority) || '4';
+      const key = `P${priority}`;
+      if (counts.hasOwnProperty(key)) {
+        counts[key]++;
+      }
+    });
 
-      return counts;
-    } catch (error) {
-      console.error('Failed to get priority counts:', error);
-      return { P1: 2, P2: 8, P3: 15, P4: 25 };
-    }
+    return counts;
   }
 
-  // Get incidents for time series analysis
   async getIncidentTimeSeries(filters = {}) {
-    try {
-      const incidents = await this.getOpenIncidents(filters);
-      return incidents.map(incident => ({
-        sys_created_on: incident.sys_created_on,
-        priority: incident.priority,
-        state: incident.state
-      }));
-    } catch (error) {
-      console.error('Failed to get incident time series:', error);
-      return [];
-    }
+    const incidents = await this.getOpenIncidents(filters);
+    return incidents.map(incident => ({
+      sys_created_on: incident.sys_created_on,
+      priority: incident.priority,
+      state: incident.state
+    }));
   }
 
-  // Get incidents by category
   async getIncidentsByCategory(filters = {}) {
-    try {
-      const incidents = await this.getOpenIncidents(filters);
-      return incidents;
-    } catch (error) {
-      console.error('Failed to get incidents by category:', error);
-      return [];
-    }
+    return await this.getOpenIncidents(filters);
   }
 
-  // Get resolved incidents for MTTR calculation
   async getResolvedIncidents(filters = {}) {
     try {
       const { start, end } = filters.dateRange || getLast120Days();
       let query = this.buildDateQuery(start, end) + '^state=6';
-      
+
       if (filters.priority) {
-        query += `^priority=${filters.priority}`;
+        query += `^priority=${sanitizeQueryValue(filters.priority)}`;
       }
       if (filters.category) {
-        query += `^category=${filters.category}`;
+        query += `^category=${sanitizeQueryValue(filters.category)}`;
       }
 
       const limit = filters.recordLimit || 2000;
@@ -135,7 +106,7 @@ export class IncidentService {
       return data.result || [];
 
     } catch (error) {
-      console.error('Failed to fetch resolved incidents:', error);
+      console.warn('Failed to fetch resolved incidents, using demo data:', error.message);
       return this.getMockResolvedIncidents();
     }
   }
@@ -144,11 +115,11 @@ export class IncidentService {
   getMockIncidents() {
     const now = new Date();
     const mockIncidents = [];
-    
+
     for (let i = 0; i < 35; i++) {
-      const createdDate = new Date(now - Math.random() * 120 * 24 * 60 * 60 * 1000); // Random date within 120 days
+      const createdDate = new Date(now - Math.random() * 120 * 24 * 60 * 60 * 1000);
       const priority = Math.ceil(Math.random() * 4);
-      
+
       mockIncidents.push({
         sys_id: { display_value: `mock_${i}`, value: `mock_${i}` },
         number: { display_value: `INC000${1000 + i}`, value: `INC000${1000 + i}` },
@@ -160,18 +131,18 @@ export class IncidentService {
         sys_created_on: { display_value: createdDate.toISOString(), value: createdDate.toISOString() }
       });
     }
-    
+
     return mockIncidents;
   }
 
   getMockResolvedIncidents() {
     const now = new Date();
     const mockResolved = [];
-    
+
     for (let i = 0; i < 25; i++) {
       const createdDate = new Date(now - Math.random() * 120 * 24 * 60 * 60 * 1000);
-      const resolvedDate = new Date(createdDate.getTime() + Math.random() * 72 * 60 * 60 * 1000); // Resolved within 72 hours
-      
+      const resolvedDate = new Date(createdDate.getTime() + Math.random() * 72 * 60 * 60 * 1000);
+
       mockResolved.push({
         sys_id: { display_value: `resolved_${i}`, value: `resolved_${i}` },
         number: { display_value: `INC000${2000 + i}`, value: `INC000${2000 + i}` },
@@ -181,7 +152,7 @@ export class IncidentService {
         category: { display_value: ['Hardware', 'Software', 'Network'][Math.floor(Math.random() * 3)], value: ['hardware', 'software', 'network'][Math.floor(Math.random() * 3)] }
       });
     }
-    
+
     return mockResolved;
   }
 }

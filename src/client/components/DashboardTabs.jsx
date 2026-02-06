@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react';
+import React from 'react';
 import { BarChart3, AlertCircle, RefreshCw, Clock, TrendingUp, Zap } from 'lucide-react';
 import OverviewTab from './OverviewTab.jsx';
 import IncidentTab from './IncidentTab.jsx';
@@ -17,31 +17,22 @@ const tabs = [
   { id: 'mttr', label: 'MTTR Analysis', icon: Zap }
 ];
 
-export default function DashboardTabs({ 
-  currentTab, 
-  onTabChange, 
-  filters, 
-  lastUpdated, 
-  services, 
-  onLoadingChange,
-  connectionStatus
+export default function DashboardTabs({
+  currentTab,
+  onTabChange,
+  filters,
+  lastUpdated,
+  services,
+  onLoadingChange
 }) {
-
-  // Memoize the loading change callback to prevent unnecessary re-renders
-  const handleLoadingChange = useCallback((loading) => {
-    console.log('Loading state changed:', loading);
-    onLoadingChange(loading);
-  }, [onLoadingChange]);
+  const commonProps = {
+    filters,
+    lastUpdated,
+    services,
+    onLoadingChange
+  };
 
   const renderTabContent = () => {
-    const commonProps = {
-      filters,
-      lastUpdated,
-      services,
-      onLoadingChange: handleLoadingChange,
-      connectionStatus
-    };
-
     switch (currentTab) {
       case 'overview':
         return <OverviewTab {...commonProps} />;

@@ -145,7 +145,7 @@ export default function MTTRTab({ filters, lastUpdated, services, onLoadingChang
             title="Average MTTR"
             value={`${mttrData.avgMTTR.toFixed(1)}h`}
             icon={BarChart3}
-            color={mttrData.avgMTTR <= 8 ? 'green' : mttrData.avgMTTR <= 24 ? 'orange' : 'red'}
+            color={mttrData.avgMTTR <= 8 ? 'success' : mttrData.avgMTTR <= 24 ? 'warning' : 'critical'}
             subtitle="Mean resolution time"
           />
 
@@ -153,7 +153,7 @@ export default function MTTRTab({ filters, lastUpdated, services, onLoadingChang
             title="Median MTTR"
             value={`${mttrData.medianMTTR.toFixed(1)}h`}
             icon={TrendingUp}
-            color={mttrData.medianMTTR <= 8 ? 'green' : mttrData.medianMTTR <= 24 ? 'orange' : 'red'}
+            color={mttrData.medianMTTR <= 8 ? 'success' : mttrData.medianMTTR <= 24 ? 'warning' : 'critical'}
             subtitle="50th percentile"
           />
 
@@ -161,7 +161,7 @@ export default function MTTRTab({ filters, lastUpdated, services, onLoadingChang
             title="Resolved Incidents"
             value={mttrData.resolvedIncidents.length}
             icon={CheckCircle}
-            color="blue"
+            color="info"
             subtitle="In selected period"
           />
 
@@ -169,7 +169,7 @@ export default function MTTRTab({ filters, lastUpdated, services, onLoadingChang
             title="Performance Score"
             value={calculateMTTRScore(mttrData)}
             icon={Target}
-            color={getMTTRScoreColor(calculateMTTRScore(mttrData))}
+            color={calculateMTTRScore(mttrData) >= 85 ? 'success' : calculateMTTRScore(mttrData) >= 65 ? 'warning' : 'critical'}
             subtitle="Resolution efficiency"
           />
         </div>
@@ -295,7 +295,7 @@ export default function MTTRTab({ filters, lastUpdated, services, onLoadingChang
         <div className="insights-grid">
           {generateMTTRInsights(mttrData).map((insight, index) => (
             <div key={index} className={`insight-card ${insight.type}`}>
-              <span className="insight-icon">{insight.icon}</span>
+              <span className="insight-icon">{React.createElement(insight.icon, { size: 24 })}</span>
               <div className="insight-content">
                 <h4>{insight.title}</h4>
                 <p>{insight.description}</p>
@@ -351,16 +351,10 @@ function calculateMTTRScore(mttrData) {
   return Math.max(Math.round(score), 0);
 }
 
-function getMTTRScoreColor(score) {
-  if (score >= 85) return 'green';
-  if (score >= 65) return 'orange';
-  return 'red';
-}
-
 function getMTTRColor(hours) {
-  if (hours <= 8) return 'green';
-  if (hours <= 24) return 'orange';
-  return 'red';
+  if (hours <= 8) return 'success';
+  if (hours <= 24) return 'warning';
+  return 'critical';
 }
 
 function getPriorityIcon(priority) {
@@ -385,16 +379,16 @@ function generateMTTRInsights(mttrData) {
   if (avgMTTR <= 8) {
     insights.push({
       type: 'positive',
-      icon: <Rocket size={32} />,
+      icon: Rocket,
       title: 'Excellent Response Time',
-      description: `Average MTTR of ${avgMTTR.toFixed(1)} hours meets industry best practices`
+      description: `Average MTTR of ${avgMTTR.toFixed(1)}h`
     });
   } else if (avgMTTR > 24) {
     insights.push({
       type: 'critical',
-      icon: <AlertOctagon size={32} />,
+      icon: AlertOctagon,
       title: 'High Resolution Time',
-      description: `Average MTTR of ${avgMTTR.toFixed(1)} hours exceeds acceptable limits`
+      description: `Average MTTR of ${avgMTTR.toFixed(1)}h exceeds 24h threshold`
     });
   }
 
@@ -402,26 +396,25 @@ function generateMTTRInsights(mttrData) {
   if (consistency < 2) {
     insights.push({
       type: 'positive',
-      icon: <Target size={32} />,
+      icon: Target,
       title: 'Consistent Performance',
-      description: 'Low variance between average and median indicates stable processes'
+      description: `${consistency.toFixed(1)}h variance between avg and median`
     });
   } else if (consistency > 8) {
     insights.push({
       type: 'warning',
-      icon: <BarChart3 size={32} />,
+      icon: BarChart3,
       title: 'Variable Performance',
-      description: 'High variance suggests outlier incidents affecting averages'
+      description: `${consistency.toFixed(1)}h variance — outliers skewing averages`
     });
   }
 
-  // Check P1 incidents
   if (mttrByPriority.P1 && mttrByPriority.P1.avg > 4) {
     insights.push({
       type: 'critical',
-      icon: <AlertTriangle size={32} />,
+      icon: AlertTriangle,
       title: 'P1 Resolution Delays',
-      description: `Critical incidents averaging ${mttrByPriority.P1.avg.toFixed(1)} hours to resolve`
+      description: `P1 averaging ${mttrByPriority.P1.avg.toFixed(1)}h (target: <4h)`
     });
   }
 

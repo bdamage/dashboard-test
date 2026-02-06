@@ -3,7 +3,6 @@ import { Moon, Sun } from 'lucide-react';
 import { IncidentService } from './services/IncidentService.js';
 import { ChangeService } from './services/ChangeService.js';
 import { SLAService } from './services/SLAService.js';
-import { PerformanceAnalyticsService } from './services/PerformanceAnalyticsService.js';
 import DashboardTabs from './components/DashboardTabs.jsx';
 import FilterPanel from './components/FilterPanel.jsx';
 import LoadingSpinner from './components/LoadingSpinner.jsx';
@@ -14,8 +13,7 @@ export default function DashboardApp() {
   const services = useMemo(() => ({
     incident: new IncidentService(),
     change: new ChangeService(),
-    sla: new SLAService(),
-    pa: new PerformanceAnalyticsService()
+    sla: new SLAService()
   }), []);
 
   // State
@@ -173,7 +171,6 @@ export default function DashboardApp() {
         lastUpdated={lastUpdated}
         services={services}
         onLoadingChange={handleLoadingChange}
-        connectionStatus={connectionStatus}
       />
     </div>
   );

@@ -12,3 +12,10 @@ export const value = (field) => {
   }
   return field?.value || '';
 };
+
+// Sanitize a value for use in ServiceNow encoded queries.
+// Strips characters that could alter query logic (^, =, newlines).
+export const sanitizeQueryValue = (val) => {
+  if (typeof val !== 'string') return '';
+  return val.replace(/[\^=\n\r]/g, '');
+};

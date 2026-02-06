@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { display, value } from '../utils/fields.js';
+import { display } from '../utils/fields.js';
 import { groupByTimeInterval } from '../utils/chartUtils.js';
 import {
   Ticket,
@@ -265,7 +265,7 @@ export default function TrendsTab({ filters, lastUpdated, services, onLoadingCha
         <div className="insights-grid">
           {generateTrendInsights(trendsData, selectedTrend).map((insight, index) => (
             <div key={index} className={`insight-card ${insight.type}`}>
-              <span className="insight-icon">{insight.icon}</span>
+              <span className="insight-icon">{React.createElement(insight.icon, { size: 24 })}</span>
               <div className="insight-content">
                 <h4>{insight.title}</h4>
                 <p>{insight.description}</p>
@@ -333,7 +333,7 @@ function TrendChart({ data, color, yLabel }) {
               y1={i * 60} 
               x2="800" 
               y2={i * 60}
-              stroke="#e0e0e0"
+              stroke="var(--border-color, #e0e0e0)"
               strokeWidth="1"
             />
           ))}
@@ -341,7 +341,7 @@ function TrendChart({ data, color, yLabel }) {
           {/* Trend line */}
           <polyline
             points={data.map((d, i) => {
-              const x = (i / (data.length - 1)) * 800;
+              const x = (i / Math.max(data.length - 1, 1)) * 800;
               const y = maxValue > 0 ? 240 - ((d.count - minValue) / (maxValue - minValue)) * 240 : 120;
               return `${x},${y}`;
             }).join(' ')}
@@ -352,7 +352,7 @@ function TrendChart({ data, color, yLabel }) {
           
           {/* Data points */}
           {data.map((d, i) => {
-            const x = (i / (data.length - 1)) * 800;
+            const x = (i / Math.max(data.length - 1, 1)) * 800;
             const y = maxValue > 0 ? 240 - ((d.count - minValue) / (maxValue - minValue)) * 240 : 120;
             return (
               <circle
@@ -422,62 +422,59 @@ function generateTrendInsights(trendsData, selectedTrend) {
   const insights = [];
   const { incidentTrends, changeTrends, slaTrends, mttrTrends } = trendsData;
 
-  // Incident insights
   if (selectedTrend === 'incidents' && incidentTrends.length > 0) {
     const trend = calculateTrend(incidentTrends);
     if (trend.includes('Increasing')) {
       insights.push({
         type: 'warning',
-        icon: <TrendingUp size={32} />,
+        icon: TrendingUp,
         title: 'Rising Incident Volume',
-        description: 'Incident creation rate is trending upward - investigate potential causes'
+        description: 'Incident rate trending upward'
       });
     } else if (trend.includes('Decreasing')) {
       insights.push({
         type: 'positive',
-        icon: <TrendingDown size={32} />,
+        icon: TrendingDown,
         title: 'Improving Stability',
-        description: 'Declining incident trend indicates improving service stability'
+        description: 'Incident rate declining'
       });
     }
   }
 
-  // SLA insights
   if (selectedTrend === 'sla' && slaTrends.length > 0) {
     const avgCompliance = calculateAverage(slaTrends.map(d => d.count));
     if (avgCompliance >= 95) {
       insights.push({
         type: 'positive',
-        icon: <Target size={32} />,
+        icon: Target,
         title: 'Excellent SLA Performance',
-        description: `Consistently maintaining ${avgCompliance.toFixed(1)}% compliance`
+        description: `${avgCompliance.toFixed(1)}% average compliance`
       });
     } else if (avgCompliance < 85) {
       insights.push({
         type: 'critical',
-        icon: <AlertTriangle size={32} />,
-        title: 'SLA Performance Issues',
-        description: `Average compliance of ${avgCompliance.toFixed(1)}% requires attention`
+        icon: AlertTriangle,
+        title: 'SLA Below Target',
+        description: `${avgCompliance.toFixed(1)}% average compliance`
       });
     }
   }
 
-  // MTTR insights
   if (selectedTrend === 'mttr' && mttrTrends.length > 0) {
     const trend = calculateTrend(mttrTrends);
     if (trend.includes('Decreasing')) {
       insights.push({
         type: 'positive',
-        icon: <Zap size={32} />,
+        icon: Zap,
         title: 'Improving Resolution Times',
-        description: 'MTTR is trending downward - resolution processes are improving'
+        description: 'MTTR trending downward'
       });
     } else if (trend.includes('Increasing')) {
       insights.push({
         type: 'warning',
-        icon: <Timer size={32} />,
+        icon: Timer,
         title: 'Rising Resolution Times',
-        description: 'MTTR is increasing - review resolution processes and resources'
+        description: 'MTTR trending upward'
       });
     }
   }

@@ -15,10 +15,6 @@
   border-color: var(--accent-light);
 }
 
-.metric-card.clickable {
-  cursor: pointer;
-}
-
 .metric-header {
   display: flex;
   align-items: center;
@@ -145,67 +141,6 @@
   background: color-mix(in srgb, var(--info) 10%, var(--bg-tertiary));
   color: var(--info);
   border-color: color-mix(in srgb, var(--info) 20%, var(--border-color));
-}
-
-/* Legacy color support (mapping to new system) */
-.metric-card.red {
-  border-left: 4px solid var(--error);
-}
-
-.metric-card.red .metric-icon {
-  background: color-mix(in srgb, var(--error) 10%, var(--bg-tertiary));
-  color: var(--error);
-  border-color: color-mix(in srgb, var(--error) 20%, var(--border-color));
-}
-
-.metric-card.orange {
-  border-left: 4px solid var(--warning);
-}
-
-.metric-card.orange .metric-icon {
-  background: color-mix(in srgb, var(--warning) 10%, var(--bg-tertiary));
-  color: var(--warning);
-  border-color: color-mix(in srgb, var(--warning) 20%, var(--border-color));
-}
-
-.metric-card.yellow {
-  border-left: 4px solid var(--warning);
-}
-
-.metric-card.yellow .metric-icon {
-  background: color-mix(in srgb, var(--warning) 10%, var(--bg-tertiary));
-  color: var(--warning);
-  border-color: color-mix(in srgb, var(--warning) 20%, var(--border-color));
-}
-
-.metric-card.green {
-  border-left: 4px solid var(--success);
-}
-
-.metric-card.green .metric-icon {
-  background: color-mix(in srgb, var(--success) 10%, var(--bg-tertiary));
-  color: var(--success);
-  border-color: color-mix(in srgb, var(--success) 20%, var(--border-color));
-}
-
-.metric-card.blue {
-  border-left: 4px solid var(--info);
-}
-
-.metric-card.blue .metric-icon {
-  background: color-mix(in srgb, var(--info) 10%, var(--bg-tertiary));
-  color: var(--info);
-  border-color: color-mix(in srgb, var(--info) 20%, var(--border-color));
-}
-
-.metric-card.purple {
-  border-left: 4px solid var(--accent-primary);
-}
-
-.metric-card.purple .metric-icon {
-  background: color-mix(in srgb, var(--accent-primary) 10%, var(--bg-tertiary));
-  color: var(--accent-primary);
-  border-color: color-mix(in srgb, var(--accent-primary) 20%, var(--border-color));
 }
 
 /* Responsive design */
