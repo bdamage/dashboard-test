@@ -1,6 +1,20 @@
 import React, { useState, useEffect } from 'react';
 import { display, value } from '../utils/fields.js';
 import { calculateAverage, calculateMedian, formatDuration } from '../utils/chartUtils.js';
+import {
+  BarChart3,
+  TrendingUp,
+  CheckCircle,
+  Target,
+  Award,
+  Timer,
+  Lightbulb,
+  Rocket,
+  AlertTriangle,
+  Zap,
+  AlertCircle,
+  AlertOctagon
+} from 'lucide-react';
 import MetricCard from './MetricCard.jsx';
 import './MTTRTab.css';
 
@@ -106,7 +120,7 @@ export default function MTTRTab({ filters, lastUpdated, services, onLoadingChang
   if (error) {
     return (
       <div className="mttr-tab error-state">
-        <h2>⚠️ Error Loading MTTR Data</h2>
+        <h2><AlertTriangle size={20} style={{display: 'inline', marginRight: '8px', verticalAlign: 'middle'}} />Error Loading MTTR Data</h2>
         <p>{error}</p>
         <button onClick={loadMTTRData} className="retry-btn">Retry</button>
       </div>
@@ -116,7 +130,7 @@ export default function MTTRTab({ filters, lastUpdated, services, onLoadingChang
   return (
     <div className="mttr-tab">
       <div className="mttr-header">
-        <h2>⚡ MTTR Analysis Dashboard</h2>
+        <h2><Zap size={24} style={{display: 'inline', marginRight: '8px', verticalAlign: 'middle'}} />MTTR Analysis Dashboard</h2>
         <p>Mean Time to Resolution metrics and performance analysis</p>
       </div>
 
@@ -125,31 +139,31 @@ export default function MTTRTab({ filters, lastUpdated, services, onLoadingChang
           <MetricCard
             title="Average MTTR"
             value={`${mttrData.avgMTTR.toFixed(1)}h`}
-            icon="📊"
+            icon={BarChart3}
             color={mttrData.avgMTTR <= 8 ? 'green' : mttrData.avgMTTR <= 24 ? 'orange' : 'red'}
             subtitle="Mean resolution time"
           />
-          
+
           <MetricCard
             title="Median MTTR"
             value={`${mttrData.medianMTTR.toFixed(1)}h`}
-            icon="📈"
+            icon={TrendingUp}
             color={mttrData.medianMTTR <= 8 ? 'green' : mttrData.medianMTTR <= 24 ? 'orange' : 'red'}
             subtitle="50th percentile"
           />
-          
+
           <MetricCard
             title="Resolved Incidents"
             value={mttrData.resolvedIncidents.length}
-            icon="✅"
+            icon={CheckCircle}
             color="blue"
             subtitle="In selected period"
           />
-          
+
           <MetricCard
             title="Performance Score"
             value={calculateMTTRScore(mttrData)}
-            icon="🎯"
+            icon={Target}
             color={getMTTRScoreColor(calculateMTTRScore(mttrData))}
             subtitle="Resolution efficiency"
           />
@@ -229,7 +243,7 @@ export default function MTTRTab({ filters, lastUpdated, services, onLoadingChang
 
       <div className="mttr-extremes">
         <div className="top-performers">
-          <h3>🏆 Fastest Resolutions</h3>
+          <h3><Award size={20} style={{display: 'inline', marginRight: '8px', verticalAlign: 'middle'}} />Fastest Resolutions</h3>
           {getTopPerformers().map(incident => (
             <div key={value(incident.sys_id)} className="performance-item">
               <span className="incident-number">{display(incident.number)}</span>
@@ -242,7 +256,7 @@ export default function MTTRTab({ filters, lastUpdated, services, onLoadingChang
         </div>
 
         <div className="slow-resolvers">
-          <h3>🐌 Longest Resolutions</h3>
+          <h3><Timer size={20} style={{display: 'inline', marginRight: '8px', verticalAlign: 'middle'}} />Longest Resolutions</h3>
           {getSlowResolvers().map(incident => (
             <div key={value(incident.sys_id)} className="performance-item">
               <span className="incident-number">{display(incident.number)}</span>
@@ -256,7 +270,7 @@ export default function MTTRTab({ filters, lastUpdated, services, onLoadingChang
       </div>
 
       <div className="mttr-insights">
-        <h3>💡 MTTR Insights</h3>
+        <h3><Lightbulb size={20} style={{display: 'inline', marginRight: '8px', verticalAlign: 'middle'}} />MTTR Insights</h3>
         <div className="insights-grid">
           {generateMTTRInsights(mttrData).map((insight, index) => (
             <div key={index} className={`insight-card ${insight.type}`}>
@@ -329,13 +343,18 @@ function getMTTRColor(hours) {
 }
 
 function getPriorityIcon(priority) {
-  const icons = {
-    'P1': '🔴',
-    'P2': '🟠',
-    'P3': '🟡',
-    'P4': '🟢'
+  const iconProps = {
+    size: 16,
+    style: { display: 'inline', marginRight: '4px', verticalAlign: 'middle' }
   };
-  return icons[priority] || '⚪';
+
+  const icons = {
+    'P1': <AlertOctagon {...iconProps} className="priority-p1" />,
+    'P2': <AlertCircle {...iconProps} className="priority-p2" />,
+    'P3': <AlertCircle {...iconProps} className="priority-p3" />,
+    'P4': <CheckCircle {...iconProps} className="priority-p4" />
+  };
+  return icons[priority] || <AlertCircle {...iconProps} />;
 }
 
 function generateMTTRInsights(mttrData) {
@@ -345,14 +364,14 @@ function generateMTTRInsights(mttrData) {
   if (avgMTTR <= 8) {
     insights.push({
       type: 'positive',
-      icon: '🚀',
+      icon: <Rocket size={32} />,
       title: 'Excellent Response Time',
       description: `Average MTTR of ${avgMTTR.toFixed(1)} hours meets industry best practices`
     });
   } else if (avgMTTR > 24) {
     insights.push({
       type: 'critical',
-      icon: '🚨',
+      icon: <AlertOctagon size={32} />,
       title: 'High Resolution Time',
       description: `Average MTTR of ${avgMTTR.toFixed(1)} hours exceeds acceptable limits`
     });
@@ -362,14 +381,14 @@ function generateMTTRInsights(mttrData) {
   if (consistency < 2) {
     insights.push({
       type: 'positive',
-      icon: '🎯',
+      icon: <Target size={32} />,
       title: 'Consistent Performance',
       description: 'Low variance between average and median indicates stable processes'
     });
   } else if (consistency > 8) {
     insights.push({
       type: 'warning',
-      icon: '📊',
+      icon: <BarChart3 size={32} />,
       title: 'Variable Performance',
       description: 'High variance suggests outlier incidents affecting averages'
     });
@@ -379,7 +398,7 @@ function generateMTTRInsights(mttrData) {
   if (mttrByPriority.P1 && mttrByPriority.P1.avg > 4) {
     insights.push({
       type: 'critical',
-      icon: '⚠️',
+      icon: <AlertTriangle size={32} />,
       title: 'P1 Resolution Delays',
       description: `Critical incidents averaging ${mttrByPriority.P1.avg.toFixed(1)} hours to resolve`
     });
