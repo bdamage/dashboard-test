@@ -30,7 +30,8 @@ export class ChangeService {
 
       console.log('Change query:', query);
 
-      const response = await fetch(`${this.baseUrl}?sysparm_query=${encodeURIComponent(query)}&sysparm_display_value=all&sysparm_limit=500&sysparm_fields=sys_id,number,short_description,state,type,assigned_to,sys_created_on`, {
+      const limit = filters.recordLimit || 2000;
+      const response = await fetch(`${this.baseUrl}?sysparm_query=${encodeURIComponent(query)}&sysparm_display_value=all&sysparm_limit=${limit}&sysparm_fields=sys_id,number,short_description,state,type,assigned_to,sys_created_on`, {
         headers: {
           "Accept": "application/json",
           "Content-Type": "application/json",

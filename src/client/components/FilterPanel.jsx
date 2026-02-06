@@ -30,6 +30,14 @@ export default function FilterPanel({ filters, onFilterChange, loading }) {
     { value: 'inquiry', label: 'Inquiry' }
   ];
 
+  const recordLimitOptions = [
+    { value: 500, label: '500 records' },
+    { value: 1000, label: '1,000 records' },
+    { value: 2000, label: '2,000 records' },
+    { value: 5000, label: '5,000 records' },
+    { value: 10000, label: '10,000 records' }
+  ];
+
   const handleDateRangeChange = (days) => {
     const dateRange = days ? getDateRange(days) : null;
     onFilterChange({ dateRange });
@@ -129,6 +137,21 @@ export default function FilterPanel({ filters, onFilterChange, loading }) {
               placeholder="Enter group name"
               disabled={loading}
             />
+          </div>
+
+          <div className="filter-group">
+            <label>Record Limit:</label>
+            <select
+              value={filters.recordLimit || 2000}
+              onChange={(e) => handleFilterChange('recordLimit', parseInt(e.target.value))}
+              disabled={loading}
+            >
+              {recordLimitOptions.map(option => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
           </div>
         </div>
       )}
