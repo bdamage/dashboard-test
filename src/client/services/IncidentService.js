@@ -1,5 +1,6 @@
 // Simplified Incident Service for ITSM Dashboard
 import { getLast120Days } from '../utils/dateUtils.js';
+import { display } from '../utils/fields.js';
 
 export class IncidentService {
   constructor() {
@@ -61,9 +62,9 @@ export class IncidentService {
     try {
       const incidents = await this.getOpenIncidents(filters);
       const counts = { P1: 0, P2: 0, P3: 0, P4: 0 };
-      
+
       incidents.forEach(incident => {
-        const priority = incident.priority?.display_value || incident.priority || '4';
+        const priority = display(incident.priority) || '4';
         const key = `P${priority}`;
         if (counts.hasOwnProperty(key)) {
           counts[key]++;
