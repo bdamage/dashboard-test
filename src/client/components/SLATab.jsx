@@ -238,23 +238,27 @@ export default function SLATab({ filters, lastUpdated, services, onLoadingChange
 }
 
 // Simple SLA Gauge component
-function SLAGauge({ percentage }) {
+function SLAGauge({ percentage = 0 }) {
   const getColor = (pct) => {
     if (pct >= 95) return '#4CAF50';
-    if (pct >= 85) return '#FF9800'; 
+    if (pct >= 85) return '#FF9800';
     return '#F44336';
   };
 
-  const rotation = (percentage / 100) * 180 - 90;
+  // Ensure percentage is valid
+  const validPercentage = Math.max(0, Math.min(100, percentage || 0));
+  const rotation = (validPercentage / 100) * 180 - 90;
+  const needleColor = getColor(validPercentage);
 
   return (
     <div className="sla-gauge-wrapper">
       <div className="sla-gauge-arc">
-        <div 
+        <div
           className="sla-gauge-needle"
-          style={{ 
-            transform: `rotate(${rotation}deg)`,
-            borderTopColor: getColor(percentage)
+          style={{
+            transform: `translateX(-50%) rotate(${rotation}deg)`,
+            background: needleColor,
+            borderColor: needleColor
           }}
         />
       </div>

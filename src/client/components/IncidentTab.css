@@ -206,15 +206,61 @@
   font-size: 1.2rem;
 }
 
+.chart-container {
+  display: flex;
+  gap: 0.5rem;
+  background: var(--bg-primary);
+  border-radius: 8px;
+  padding: 1rem;
+}
+
+.chart-y-axis {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding-right: 0.5rem;
+  min-width: 30px;
+  height: 200px;
+}
+
+.y-axis-label {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  text-align: right;
+  line-height: 1;
+}
+
+.chart-with-grid {
+  flex: 1;
+  position: relative;
+  overflow-x: auto;
+}
+
+.chart-grid {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  pointer-events: none;
+}
+
+.grid-line {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: var(--border-color);
+  opacity: 0.3;
+}
+
 .simple-chart {
   display: flex;
   align-items: end;
   gap: 0.5rem;
   height: 200px;
-  padding: 1rem;
-  background: var(--bg-primary);
-  border-radius: 8px;
-  overflow-x: auto;
+  padding: 0 1rem;
+  position: relative;
 }
 
 .chart-bar {

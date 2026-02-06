@@ -246,17 +246,44 @@ export default function MTTRTab({ filters, lastUpdated, services, onLoadingChang
 
       <div className="mttr-distribution">
         <h3>MTTR Distribution</h3>
-        <div className="distribution-chart">
-          {mttrData.mttrDistribution.map((bucket, index) => (
-            <div key={index} className="distribution-bar">
-              <div 
-                className="bar"
-                style={{ height: `${bucket.percentage}%` }}
-                title={`${bucket.range}: ${bucket.count} incidents (${bucket.percentage.toFixed(1)}%)`}
-              />
-              <div className="bar-label">{bucket.label}</div>
+        <div className="chart-container">
+          <div className="chart-y-axis">
+            {[100, 75, 50, 25, 0].map(percent => {
+              const maxCount = Math.max(...mttrData.mttrDistribution.map(b => b.count), 1);
+              const value = Math.round((maxCount * percent) / 100);
+              return (
+                <div key={percent} className="y-axis-label">
+                  {value}
+                </div>
+              );
+            })}
+          </div>
+          <div className="chart-with-grid">
+            <div className="chart-grid">
+              {[0, 25, 50, 75, 100].map(percent => (
+                <div key={percent} className="grid-line" style={{ bottom: `${percent}%` }} />
+              ))}
             </div>
-          ))}
+            <div className="distribution-chart">
+              {mttrData.mttrDistribution.map((bucket, index) => {
+                const maxCount = Math.max(...mttrData.mttrDistribution.map(b => b.count), 1);
+                const heightPercent = (bucket.count / maxCount) * 100;
+                return (
+                  <div key={index} className="distribution-bar">
+                    <div
+                      className="bar"
+                      style={{ height: `${heightPercent}%` }}
+                      title={`${bucket.range}: ${bucket.count} incidents (${bucket.percentage.toFixed(1)}%)`}
+                    />
+                    <div className="bar-label">{bucket.label}</div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+        <div className="chart-legend">
+          <span>Y-axis: Number of incidents in each time range</span>
         </div>
       </div>
 

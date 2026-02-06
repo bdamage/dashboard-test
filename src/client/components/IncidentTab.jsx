@@ -210,19 +210,36 @@ function SimpleChart({ data }) {
   }
 
   const maxValue = Math.max(...data.map(d => d.count));
+  const gridLines = [0, 25, 50, 75, 100];
 
   return (
-    <div className="simple-chart">
-      {data.map((point, index) => (
-        <div key={index} className="chart-bar">
-          <div 
-            className="bar"
-            style={{ height: `${(point.count / maxValue) * 100}%` }}
-            title={`${point.date}: ${point.count} incidents`}
-          ></div>
-          <div className="bar-label">{point.date}</div>
+    <div className="chart-container">
+      <div className="chart-y-axis">
+        {gridLines.reverse().map(percent => (
+          <div key={percent} className="y-axis-label">
+            {Math.round((maxValue * percent) / 100)}
+          </div>
+        ))}
+      </div>
+      <div className="chart-with-grid">
+        <div className="chart-grid">
+          {[0, 25, 50, 75, 100].map(percent => (
+            <div key={percent} className="grid-line" style={{ bottom: `${percent}%` }} />
+          ))}
         </div>
-      ))}
+        <div className="simple-chart">
+          {data.map((point, index) => (
+            <div key={index} className="chart-bar">
+              <div
+                className="bar"
+                style={{ height: `${(point.count / maxValue) * 100}%` }}
+                title={`${point.date}: ${point.count} incidents`}
+              ></div>
+              <div className="bar-label">{point.date}</div>
+            </div>
+          ))}
+        </div>
+      </div>
     </div>
   );
 }
