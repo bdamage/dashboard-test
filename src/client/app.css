@@ -11,12 +11,12 @@
     align-items: center;
     margin-bottom: 20px;
     padding-bottom: 10px;
-    border-bottom: 1px solid #ddd;
+    border-bottom: 1px solid var(--border-color);
 }
 
 .app-header h1 {
     margin: 0;
-    color: #2c3e50;
+    color: var(--text-primary);
 }
 
 .create-button {
@@ -37,7 +37,7 @@
     text-align: center;
     padding: 40px;
     font-size: 18px;
-    color: #666;
+    color: var(--text-secondary);
 }
 
 .error-message {

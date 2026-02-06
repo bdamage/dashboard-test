@@ -1,6 +1,19 @@
 import React, { useState, useEffect } from 'react';
 import { display, value } from '../utils/fields.js';
 import { groupByTimeInterval } from '../utils/chartUtils.js';
+import {
+  Ticket,
+  RefreshCw,
+  Clock,
+  Zap,
+  TrendingUp,
+  TrendingDown,
+  BarChart3,
+  ArrowRight,
+  Target,
+  Timer,
+  AlertTriangle
+} from 'lucide-react';
 import './TrendsTab.css';
 
 export default function TrendsTab({ filters, lastUpdated, services, onLoadingChange }) {
@@ -152,25 +165,25 @@ export default function TrendsTab({ filters, lastUpdated, services, onLoadingCha
         title: 'Incident Volume Trends',
         yLabel: 'Number of Incidents',
         color: '#F44336',
-        icon: '🎫'
+        icon: Ticket
       },
       changes: {
         title: 'Change Request Trends',
         yLabel: 'Number of Changes',
         color: '#2196F3',
-        icon: '🔄'
+        icon: RefreshCw
       },
       sla: {
         title: 'SLA Compliance Trends',
         yLabel: 'Compliance %',
         color: '#4CAF50',
-        icon: '⏱️'
+        icon: Clock
       },
       mttr: {
         title: 'MTTR Trends',
         yLabel: 'Average Hours',
         color: '#FF9800',
-        icon: '⚡'
+        icon: Zap
       }
     };
     return configs[selectedTrend] || configs.incidents;
@@ -179,7 +192,7 @@ export default function TrendsTab({ filters, lastUpdated, services, onLoadingCha
   if (error) {
     return (
       <div className="trends-tab error-state">
-        <h2>⚠️ Error Loading Trends Data</h2>
+        <h2><AlertTriangle size={20} style={{display: 'inline', marginRight: '8px', verticalAlign: 'middle'}} />Error Loading Trends Data</h2>
         <p>{error}</p>
         <button onClick={loadTrendsData} className="retry-btn">Retry</button>
       </div>
@@ -192,35 +205,35 @@ export default function TrendsTab({ filters, lastUpdated, services, onLoadingCha
   return (
     <div className="trends-tab">
       <div className="trends-header">
-        <h2>📈 Trends Analysis</h2>
+        <h2><TrendingUp size={24} style={{display: 'inline', marginRight: '8px', verticalAlign: 'middle'}} />Trends Analysis</h2>
         <p>Time series analysis and historical performance trends</p>
       </div>
 
       <div className="trends-controls">
         <div className="trend-type-selector">
-          <button 
+          <button
             className={selectedTrend === 'incidents' ? 'active' : ''}
             onClick={() => setSelectedTrend('incidents')}
           >
-            🎫 Incidents
+            <Ticket size={16} style={{display: 'inline', marginRight: '6px', verticalAlign: 'middle'}} />Incidents
           </button>
-          <button 
+          <button
             className={selectedTrend === 'changes' ? 'active' : ''}
             onClick={() => setSelectedTrend('changes')}
           >
-            🔄 Changes
+            <RefreshCw size={16} style={{display: 'inline', marginRight: '6px', verticalAlign: 'middle'}} />Changes
           </button>
-          <button 
+          <button
             className={selectedTrend === 'sla' ? 'active' : ''}
             onClick={() => setSelectedTrend('sla')}
           >
-            ⏱️ SLA Compliance
+            <Clock size={16} style={{display: 'inline', marginRight: '6px', verticalAlign: 'middle'}} />SLA Compliance
           </button>
-          <button 
+          <button
             className={selectedTrend === 'mttr' ? 'active' : ''}
             onClick={() => setSelectedTrend('mttr')}
           >
-            ⚡ MTTR
+            <Zap size={16} style={{display: 'inline', marginRight: '6px', verticalAlign: 'middle'}} />MTTR
           </button>
         </div>
 
@@ -236,7 +249,8 @@ export default function TrendsTab({ filters, lastUpdated, services, onLoadingCha
 
       <div className="trends-chart-container">
         <h3>
-          {trendConfig.icon} {trendConfig.title}
+          {trendConfig.icon && React.createElement(trendConfig.icon, { size: 20, style: {display: 'inline', marginRight: '8px', verticalAlign: 'middle'} })}
+          {trendConfig.title}
         </h3>
         <div className="trends-chart">
           <TrendChart 
@@ -248,7 +262,7 @@ export default function TrendsTab({ filters, lastUpdated, services, onLoadingCha
       </div>
 
       <div className="trends-insights">
-        <h3>📊 Trend Insights</h3>
+        <h3><BarChart3 size={20} style={{display: 'inline', marginRight: '8px', verticalAlign: 'middle'}} />Trend Insights</h3>
         <div className="insights-grid">
           {generateTrendInsights(trendsData, selectedTrend).map((insight, index) => (
             <div key={index} className={`insight-card ${insight.type}`}>
@@ -263,25 +277,25 @@ export default function TrendsTab({ filters, lastUpdated, services, onLoadingCha
       </div>
 
       <div className="trends-summary">
-        <h3>📈 Trend Summary</h3>
+        <h3><TrendingUp size={20} style={{display: 'inline', marginRight: '8px', verticalAlign: 'middle'}} />Trend Summary</h3>
         <div className="summary-cards">
           <div className="summary-card">
-            <h4>🎫 Incidents</h4>
+            <h4><Ticket size={16} style={{display: 'inline', marginRight: '6px', verticalAlign: 'middle'}} />Incidents</h4>
             <p>Trend: {calculateTrend(trendsData.incidentTrends)}</p>
             <p>Total: {trendsData.incidentTrends.reduce((sum, d) => sum + d.count, 0)}</p>
           </div>
           <div className="summary-card">
-            <h4>🔄 Changes</h4>
+            <h4><RefreshCw size={16} style={{display: 'inline', marginRight: '6px', verticalAlign: 'middle'}} />Changes</h4>
             <p>Trend: {calculateTrend(trendsData.changeTrends)}</p>
             <p>Total: {trendsData.changeTrends.reduce((sum, d) => sum + d.count, 0)}</p>
           </div>
           <div className="summary-card">
-            <h4>⏱️ SLA Compliance</h4>
+            <h4><Clock size={16} style={{display: 'inline', marginRight: '6px', verticalAlign: 'middle'}} />SLA Compliance</h4>
             <p>Average: {calculateAverage(trendsData.slaTrends.map(d => d.count)).toFixed(1)}%</p>
             <p>Trend: {calculateTrend(trendsData.slaTrends)}</p>
           </div>
           <div className="summary-card">
-            <h4>⚡ MTTR</h4>
+            <h4><Zap size={16} style={{display: 'inline', marginRight: '6px', verticalAlign: 'middle'}} />MTTR</h4>
             <p>Average: {calculateAverage(trendsData.mttrTrends.map(d => d.count)).toFixed(1)}h</p>
             <p>Trend: {calculateTrend(trendsData.mttrTrends)}</p>
           </div>
@@ -386,18 +400,18 @@ function formatDateLabel(dateString, interval) {
 
 function calculateTrend(data) {
   if (!data || data.length < 2) return 'No trend';
-  
+
   const recent = data.slice(-5);
   const older = data.slice(-10, -5);
-  
+
   if (recent.length === 0 || older.length === 0) return 'Insufficient data';
-  
+
   const recentAvg = recent.reduce((sum, d) => sum + d.count, 0) / recent.length;
   const olderAvg = older.reduce((sum, d) => sum + d.count, 0) / older.length;
-  
-  if (recentAvg > olderAvg * 1.1) return '📈 Increasing';
-  if (recentAvg < olderAvg * 0.9) return '📉 Decreasing';
-  return '➡️ Stable';
+
+  if (recentAvg > olderAvg * 1.1) return 'Increasing';
+  if (recentAvg < olderAvg * 0.9) return 'Decreasing';
+  return 'Stable';
 }
 
 function calculateAverage(values) {
@@ -415,14 +429,14 @@ function generateTrendInsights(trendsData, selectedTrend) {
     if (trend.includes('Increasing')) {
       insights.push({
         type: 'warning',
-        icon: '📈',
+        icon: <TrendingUp size={32} />,
         title: 'Rising Incident Volume',
         description: 'Incident creation rate is trending upward - investigate potential causes'
       });
     } else if (trend.includes('Decreasing')) {
       insights.push({
         type: 'positive',
-        icon: '📉',
+        icon: <TrendingDown size={32} />,
         title: 'Improving Stability',
         description: 'Declining incident trend indicates improving service stability'
       });
@@ -435,14 +449,14 @@ function generateTrendInsights(trendsData, selectedTrend) {
     if (avgCompliance >= 95) {
       insights.push({
         type: 'positive',
-        icon: '🎯',
+        icon: <Target size={32} />,
         title: 'Excellent SLA Performance',
         description: `Consistently maintaining ${avgCompliance.toFixed(1)}% compliance`
       });
     } else if (avgCompliance < 85) {
       insights.push({
         type: 'critical',
-        icon: '⚠️',
+        icon: <AlertTriangle size={32} />,
         title: 'SLA Performance Issues',
         description: `Average compliance of ${avgCompliance.toFixed(1)}% requires attention`
       });
@@ -455,14 +469,14 @@ function generateTrendInsights(trendsData, selectedTrend) {
     if (trend.includes('Decreasing')) {
       insights.push({
         type: 'positive',
-        icon: '⚡',
+        icon: <Zap size={32} />,
         title: 'Improving Resolution Times',
         description: 'MTTR is trending downward - resolution processes are improving'
       });
     } else if (trend.includes('Increasing')) {
       insights.push({
         type: 'warning',
-        icon: '🐌',
+        icon: <Timer size={32} />,
         title: 'Rising Resolution Times',
         description: 'MTTR is increasing - review resolution processes and resources'
       });

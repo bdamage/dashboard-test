@@ -11,11 +11,11 @@
 .incident-header h2 {
   margin: 0 0 0.5rem 0;
   font-size: 1.8rem;
-  color: #333;
+  color: var(--text-primary);
 }
 
 .incident-header p {
-  color: #666;
+  color: var(--text-secondary);
   font-size: 1.1rem;
   margin: 0;
 }
@@ -26,7 +26,7 @@
 
 .priority-metrics h3 {
   margin: 0 0 1rem 0;
-  color: #333;
+  color: var(--text-primary);
   font-size: 1.3rem;
 }
 
@@ -46,7 +46,7 @@
 
 .category-breakdown,
 .recent-incidents {
-  background: #f8f9fa;
+  background: var(--bg-secondary);
   border-radius: 12px;
   padding: 1.5rem;
 }
@@ -54,7 +54,7 @@
 .category-breakdown h3,
 .recent-incidents h3 {
   margin: 0 0 1rem 0;
-  color: #333;
+  color: var(--text-primary);
   font-size: 1.2rem;
 }
 
@@ -68,20 +68,20 @@
   display: flex;
   align-items: center;
   gap: 1rem;
-  background: white;
+  background: var(--bg-primary);
   padding: 0.75rem 1rem;
   border-radius: 8px;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  box-shadow: var(--shadow-sm);
 }
 
 .category-name {
   font-weight: 600;
-  color: #333;
+  color: var(--text-primary);
   min-width: 100px;
 }
 
 .category-count {
-  background: #667eea;
+  background: var(--accent-primary);
   color: white;
   padding: 0.25rem 0.5rem;
   border-radius: 12px;
@@ -94,7 +94,7 @@
 .category-bar {
   flex: 1;
   height: 6px;
-  background: #e0e0e0;
+  background: var(--border-color);
   border-radius: 3px;
   overflow: hidden;
 }
@@ -117,10 +117,10 @@
   grid-template-columns: 1fr 2fr 1fr 0.5fr;
   gap: 1rem;
   align-items: center;
-  background: white;
+  background: var(--bg-primary);
   padding: 0.75rem;
   border-radius: 6px;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  box-shadow: var(--shadow-sm);
   transition: transform 0.2s ease;
 }
 
@@ -133,7 +133,7 @@
   align-items: center;
   gap: 0.5rem;
   font-weight: 600;
-  color: #333;
+  color: var(--text-primary);
 }
 
 .priority-badge {
@@ -156,7 +156,7 @@
 
 .priority-badge.p3 {
   background: #FFC107;
-  color: #333;
+  color: var(--text-primary);
 }
 
 .priority-badge.p4 {
@@ -164,7 +164,7 @@
 }
 
 .incident-description {
-  color: #555;
+  color: var(--text-secondary);
   font-size: 0.9rem;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -172,25 +172,25 @@
 }
 
 .incident-assignee {
-  color: #666;
+  color: var(--text-secondary);
   font-size: 0.85rem;
 }
 
 .incident-age {
-  color: #888;
+  color: var(--text-muted);
   font-size: 0.8rem;
   text-align: right;
 }
 
 .incident-timeline {
-  background: #f8f9fa;
+  background: var(--bg-secondary);
   border-radius: 12px;
   padding: 1.5rem;
 }
 
 .incident-timeline h3 {
   margin: 0 0 1rem 0;
-  color: #333;
+  color: var(--text-primary);
   font-size: 1.2rem;
 }
 
@@ -200,7 +200,7 @@
   gap: 0.5rem;
   height: 200px;
   padding: 1rem;
-  background: white;
+  background: var(--bg-primary);
   border-radius: 8px;
   overflow-x: auto;
 }
@@ -227,7 +227,7 @@
 
 .bar-label {
   font-size: 0.7rem;
-  color: #666;
+  color: var(--text-secondary);
   margin-top: 0.5rem;
   writing-mode: vertical-rl;
   text-orientation: mixed;
@@ -238,9 +238,9 @@
   align-items: center;
   justify-content: center;
   height: 200px;
-  color: #888;
+  color: var(--text-muted);
   font-style: italic;
-  background: white;
+  background: var(--bg-primary);
   border-radius: 8px;
 }
 

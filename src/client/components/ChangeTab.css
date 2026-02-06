@@ -11,11 +11,11 @@
 .change-header h2 {
   margin: 0 0 0.5rem 0;
   font-size: 1.8rem;
-  color: #333;
+  color: var(--text-primary);
 }
 
 .change-header p {
-  color: #666;
+  color: var(--text-secondary);
   font-size: 1.1rem;
   margin: 0;
 }
@@ -39,7 +39,7 @@
 
 .state-breakdown,
 .recent-changes {
-  background: #f8f9fa;
+  background: var(--bg-secondary);
   border-radius: 12px;
   padding: 1.5rem;
 }
@@ -47,7 +47,7 @@
 .state-breakdown h3,
 .recent-changes h3 {
   margin: 0 0 1rem 0;
-  color: #333;
+  color: var(--text-primary);
   font-size: 1.2rem;
 }
 
@@ -58,10 +58,10 @@
 }
 
 .state-item {
-  background: white;
+  background: var(--bg-primary);
   padding: 1rem;
   border-radius: 8px;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  box-shadow: var(--shadow-sm);
 }
 
 .state-info {
@@ -73,11 +73,11 @@
 
 .state-name {
   font-weight: 600;
-  color: #333;
+  color: var(--text-primary);
 }
 
 .state-count {
-  color: #666;
+  color: var(--text-secondary);
   font-size: 0.9rem;
 }
 
@@ -133,10 +133,10 @@
   grid-template-columns: 1fr 2fr 1fr 1fr;
   gap: 1rem;
   align-items: center;
-  background: white;
+  background: var(--bg-primary);
   padding: 0.75rem;
   border-radius: 6px;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  box-shadow: var(--shadow-sm);
   transition: transform 0.2s ease;
 }
 
@@ -149,7 +149,7 @@
   align-items: center;
   gap: 0.5rem;
   font-weight: 600;
-  color: #333;
+  color: var(--text-primary);
 }
 
 .state-badge {
@@ -172,7 +172,7 @@
 }
 
 .change-type {
-  color: #666;
+  color: var(--text-secondary);
   font-size: 0.85rem;
   padding: 0.25rem 0.5rem;
   background: #f0f0f0;
@@ -181,7 +181,7 @@
 }
 
 .change-assignee {
-  color: #666;
+  color: var(--text-secondary);
   font-size: 0.85rem;
 }
 
@@ -191,7 +191,7 @@
 
 .change-insights h3 {
   margin: 0 0 1rem 0;
-  color: #333;
+  color: var(--text-primary);
   font-size: 1.3rem;
 }
 
@@ -205,7 +205,7 @@
   display: flex;
   align-items: center;
   gap: 1rem;
-  background: white;
+  background: var(--bg-primary);
   padding: 1.5rem;
   border-radius: 8px;
   box-shadow: 0 2px 5px rgba(0,0,0,0.1);
@@ -239,13 +239,13 @@
 
 .insight-content h4 {
   margin: 0 0 0.5rem 0;
-  color: #333;
+  color: var(--text-primary);
   font-size: 1rem;
 }
 
 .insight-content p {
   margin: 0;
-  color: #666;
+  color: var(--text-secondary);
   font-size: 0.9rem;
   line-height: 1.4;
 }

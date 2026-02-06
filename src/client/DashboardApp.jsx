@@ -125,23 +125,14 @@ export default function DashboardApp() {
     }
   };
 
-  const getConnectionStatusColor = () => {
-    switch (connectionStatus) {
-      case 'connected': return '#059669';
-      case 'limited': return '#d97706';
-      case 'demo': return '#0284c7';
-      default: return '#6b7280';
-    }
-  };
-
   return (
     <div className="dashboard-app">
       <header className="dashboard-header">
         <div className="header-content">
           <h1>ITSM Analytics Dashboard</h1>
           <div className="header-actions">
-            <div className="connection-status" style={{ color: getConnectionStatusColor() }}>
-              <div className="status-indicator" style={{ backgroundColor: getConnectionStatusColor() }}></div>
+            <div className={`connection-status connection-${connectionStatus}`}>
+              <div className="status-indicator"></div>
               {getConnectionStatusMessage()}
             </div>
             <button 

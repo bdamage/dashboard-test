@@ -12,7 +12,7 @@
 }
 
 .form-container {
-    background-color: white;
+    background-color: var(--bg-primary);
     width: 100%;
     max-width: 600px;
     border-radius: 8px;
@@ -22,17 +22,17 @@
 
 .form-header {
     padding: 15px 20px;
-    background-color: #f5f5f5;
+    background-color: var(--bg-secondary);
     display: flex;
     justify-content: space-between;
     align-items: center;
-    border-bottom: 1px solid #ddd;
+    border-bottom: 1px solid var(--border-color);
 }
 
 .form-header h2 {
     margin: 0;
     font-size: 18px;
-    color: #333;
+    color: var(--text-primary);
 }
 
 .close-button {
@@ -40,7 +40,7 @@
     border: none;
     font-size: 24px;
     cursor: pointer;
-    color: #666;
+    color: var(--text-secondary);
 }
 
 .close-button:hover {
@@ -68,7 +68,7 @@ label {
     display: block;
     margin-bottom: 8px;
     font-weight: 500;
-    color: #333;
+    color: var(--text-primary);
 }
 
 input,
@@ -76,7 +76,7 @@ select,
 textarea {
     width: 100%;
     padding: 10px;
-    border: 1px solid #ddd;
+    border: 1px solid var(--border-color);
     border-radius: 4px;
     font-size: 14px;
 }

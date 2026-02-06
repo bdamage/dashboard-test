@@ -11,11 +11,11 @@
 .trends-header h2 {
   margin: 0 0 0.5rem 0;
   font-size: 1.8rem;
-  color: #333;
+  color: var(--text-primary);
 }
 
 .trends-header p {
-  color: #666;
+  color: var(--text-secondary);
   font-size: 1.1rem;
   margin: 0;
 }
@@ -24,10 +24,10 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background: white;
+  background: var(--bg-primary);
   padding: 1.5rem;
   border-radius: 12px;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+  box-shadow: var(--shadow-md);
   margin-bottom: 2rem;
 }
 
@@ -38,24 +38,24 @@
 
 .trend-type-selector button {
   padding: 0.75rem 1rem;
-  border: 2px solid #e0e0e0;
-  background: white;
+  border: 2px solid var(--border-color);
+  background: var(--bg-primary);
   border-radius: 8px;
   cursor: pointer;
   font-size: 0.9rem;
   font-weight: 600;
-  color: #666;
+  color: var(--text-secondary);
   transition: all 0.3s ease;
 }
 
 .trend-type-selector button:hover {
-  border-color: #667eea;
-  color: #667eea;
+  border-color: var(--accent-primary);
+  color: var(--accent-primary);
 }
 
 .trend-type-selector button.active {
-  background: #667eea;
-  border-color: #667eea;
+  background: var(--accent-primary);
+  border-color: var(--accent-primary);
   color: white;
 }
 
@@ -67,12 +67,12 @@
 
 .time-interval-selector label {
   font-weight: 600;
-  color: #333;
+  color: var(--text-primary);
 }
 
 .time-interval-selector select {
   padding: 0.5rem;
-  border: 2px solid #e0e0e0;
+  border: 2px solid var(--border-color);
   border-radius: 6px;
   font-size: 0.9rem;
   cursor: pointer;
@@ -80,20 +80,20 @@
 
 .time-interval-selector select:focus {
   outline: none;
-  border-color: #667eea;
+  border-color: var(--accent-primary);
 }
 
 .trends-chart-container {
-  background: white;
+  background: var(--bg-primary);
   border-radius: 12px;
   padding: 2rem;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+  box-shadow: var(--shadow-md);
   margin-bottom: 2rem;
 }
 
 .trends-chart-container h3 {
   margin: 0 0 1.5rem 0;
-  color: #333;
+  color: var(--text-primary);
   font-size: 1.3rem;
   display: flex;
   align-items: center;
@@ -110,9 +110,9 @@
   align-items: center;
   justify-content: center;
   height: 100%;
-  color: #888;
+  color: var(--text-muted);
   font-style: italic;
-  background: #f8f9fa;
+  background: var(--bg-secondary);
   border-radius: 8px;
 }
 
@@ -134,7 +134,7 @@
   writing-mode: vertical-rl;
   text-orientation: mixed;
   font-size: 0.8rem;
-  color: #666;
+  color: var(--text-secondary);
   margin-bottom: 1rem;
 }
 
@@ -144,7 +144,7 @@
   justify-content: space-between;
   height: 100%;
   font-size: 0.75rem;
-  color: #888;
+  color: var(--text-muted);
 }
 
 .chart-content {
@@ -171,7 +171,7 @@
   justify-content: space-between;
   padding-top: 0.5rem;
   font-size: 0.75rem;
-  color: #888;
+  color: var(--text-muted);
 }
 
 .x-axis-label {
@@ -186,7 +186,7 @@
 
 .trends-insights h3 {
   margin: 0 0 1rem 0;
-  color: #333;
+  color: var(--text-primary);
   font-size: 1.3rem;
 }
 
@@ -200,10 +200,10 @@
   display: flex;
   align-items: center;
   gap: 1rem;
-  background: white;
+  background: var(--bg-primary);
   padding: 1.5rem;
   border-radius: 8px;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+  box-shadow: var(--shadow-sm);
   transition: transform 0.2s ease;
 }
 
@@ -234,26 +234,26 @@
 
 .insight-content h4 {
   margin: 0 0 0.5rem 0;
-  color: #333;
+  color: var(--text-primary);
   font-size: 1rem;
 }
 
 .insight-content p {
   margin: 0;
-  color: #666;
+  color: var(--text-secondary);
   font-size: 0.9rem;
   line-height: 1.4;
 }
 
 .trends-summary {
-  background: #f8f9fa;
+  background: var(--bg-secondary);
   border-radius: 12px;
   padding: 2rem;
 }
 
 .trends-summary h3 {
   margin: 0 0 1.5rem 0;
-  color: #333;
+  color: var(--text-primary);
   font-size: 1.3rem;
 }
 
@@ -264,22 +264,22 @@
 }
 
 .summary-card {
-  background: white;
+  background: var(--bg-primary);
   padding: 1.5rem;
   border-radius: 8px;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  box-shadow: var(--shadow-sm);
   text-align: center;
 }
 
 .summary-card h4 {
   margin: 0 0 0.5rem 0;
-  color: #333;
+  color: var(--text-primary);
   font-size: 1rem;
 }
 
 .summary-card p {
   margin: 0.25rem 0;
-  color: #666;
+  color: var(--text-secondary);
   font-size: 0.9rem;
 }
 
