@@ -186,6 +186,18 @@ export class IncidentService {
 
       const data = await response.json();
       const results = data.result || [];
+
+      // DIAGNOSTIC: Log first resolved incident to inspect data structure
+      if (results.length > 0) {
+        console.log('[ITSM] Sample resolved incident data structure:', {
+          fullRecord: results[0],
+          priority: results[0].priority,
+          priorityType: typeof results[0].priority,
+          resolved_at: results[0].resolved_at,
+          sys_created_on: results[0].sys_created_on
+        });
+      }
+
       logApiSuccess(SVC, 'getResolvedIncidents', {
         recordCount: results.length,
         durationMs: Math.round(performance.now() - t0),

@@ -41,7 +41,20 @@ export default function MTTRTab({ filters, lastUpdated, services, onLoadingChang
       setError(null);
 
       const resolvedIncidents = await services.incident.getResolvedIncidents(filters);
-      
+
+      // DIAGNOSTIC: Log first resolved incident to inspect data structure
+      if (resolvedIncidents.length > 0) {
+        console.log('[ITSM] Sample resolved incident data structure:', {
+          fullRecord: resolvedIncidents[0],
+          priority: resolvedIncidents[0].priority,
+          priorityType: typeof resolvedIncidents[0].priority,
+          resolved_at: resolvedIncidents[0].resolved_at,
+          sys_created_on: resolvedIncidents[0].sys_created_on
+        });
+      }
+
+      console.log(`[ITSM] Processing ${resolvedIncidents.length} resolved incidents for MTTR calculation`);
+
       // Calculate MTTR values in hours
       const mttrValues = resolvedIncidents
         .filter(incident => display(incident.resolved_at) && display(incident.sys_created_on))
@@ -49,7 +62,7 @@ export default function MTTRTab({ filters, lastUpdated, services, onLoadingChang
           const created = new Date(display(incident.sys_created_on));
           const resolved = new Date(display(incident.resolved_at));
           const hours = (resolved - created) / (1000 * 60 * 60);
-          
+
           return {
             ...incident,
             mttr: hours > 0 ? hours : 0
@@ -57,20 +70,37 @@ export default function MTTRTab({ filters, lastUpdated, services, onLoadingChang
         })
         .filter(incident => incident.mttr > 0);
 
+      console.log(`[ITSM] Valid MTTR records after filtering: ${mttrValues.length}`);
+
       const avgMTTR = calculateAverage(mttrValues.map(i => i.mttr));
       const medianMTTR = calculateMedian(mttrValues.map(i => i.mttr));
 
       // MTTR by priority
       const mttrByPriority = {};
+      const priorityValuesFound = [];
+
       ['1', '2', '3', '4'].forEach(priority => {
-        const priorityIncidents = mttrValues.filter(i => display(i.priority) === priority);
+        // Extract numeric priority, handling both "4" and "4 - Low" formats
+        const priorityIncidents = mttrValues.filter(i => {
+          const incidentPriority = value(i.priority) || display(i.priority) || '';
+          const numericMatch = String(incidentPriority).match(/^(\d+)/);
+          const numericPriority = numericMatch ? numericMatch[1] : incidentPriority;
+          return numericPriority === priority;
+        });
+
         if (priorityIncidents.length > 0) {
+          priorityValuesFound.push(priority);
           mttrByPriority[`P${priority}`] = {
             avg: calculateAverage(priorityIncidents.map(i => i.mttr)),
             median: calculateMedian(priorityIncidents.map(i => i.mttr)),
             count: priorityIncidents.length
           };
         }
+      });
+
+      console.log('[ITSM] MTTR by priority:', {
+        found: priorityValuesFound,
+        data: mttrByPriority
       });
 
       // MTTR by category
@@ -90,6 +120,14 @@ export default function MTTRTab({ filters, lastUpdated, services, onLoadingChang
       // MTTR distribution (for histogram)
       const mttrDistribution = createMTTRDistribution(mttrValues.map(i => i.mttr));
 
+      console.log('[ITSM] MTTR distribution:', {
+        buckets: mttrDistribution.map(b => ({
+          label: b.label,
+          count: b.count,
+          percentage: b.percentage.toFixed(1) + '%'
+        }))
+      });
+
       setMttrData({
         resolvedIncidents: mttrValues,
         avgMTTR,
@@ -97,6 +135,16 @@ export default function MTTRTab({ filters, lastUpdated, services, onLoadingChang
         mttrByPriority,
         mttrByCategory,
         mttrDistribution
+      });
+
+      // DIAGNOSTIC: Log final MTTR data summary
+      console.log('[ITSM] MTTRTab data loaded:', {
+        resolvedIncidentsCount: mttrValues.length,
+        avgMTTR: avgMTTR.toFixed(1) + 'h',
+        medianMTTR: medianMTTR.toFixed(1) + 'h',
+        priorityBreakdown: Object.keys(mttrByPriority),
+        categoryCount: Object.keys(mttrByCategory).length,
+        distributionBuckets: mttrDistribution.length
       });
 
       logTabLoad('MTTR', {
