@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Clipboard, RefreshCw, Target, Zap, BarChart3, Heart } from 'lucide-react';
-import { display, value } from '../utils/fields.js';
-import { calculateAverage, calculateMedian, calculatePercentChange } from '../utils/chartUtils.js';
+import { display } from '../utils/fields.js';
+import { calculateAverage, calculateMedian } from '../utils/chartUtils.js';
 import MetricCard from './MetricCard.jsx';
 import './OverviewTab.css';
 

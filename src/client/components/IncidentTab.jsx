@@ -12,7 +12,6 @@ export default function IncidentTab({ filters, lastUpdated, services, onLoadingC
     categoryBreakdown: {},
     timeSeries: []
   });
-  const [selectedPriority, setSelectedPriority] = useState('');
   const [error, setError] = useState(null);
 
   useEffect(() => {
@@ -53,12 +52,6 @@ export default function IncidentTab({ filters, lastUpdated, services, onLoadingC
     }
   };
 
-  const getIncidentsByPriority = (priority) => {
-    return incidentData.openIncidents.filter(incident => 
-      display(incident.priority) === priority
-    );
-  };
-
   const getPriorityIcon = (priority) => {
     switch (priority) {
       case 'P1': return AlertCircle;
@@ -82,11 +75,6 @@ export default function IncidentTab({ filters, lastUpdated, services, onLoadingC
   const getIncidentUrl = (incidentNumber) => {
     // ServiceNow incident URL format
     return `/nav_to.do?uri=incident.do?sysparm_query=number=${incidentNumber}`;
-  };
-
-  const openIncident = (incidentNumber, incidentSysId) => {
-    const url = getIncidentUrl(incidentNumber);
-    window.open(url, '_blank', 'noopener,noreferrer');
   };
 
   if (error) {
@@ -119,7 +107,6 @@ export default function IncidentTab({ filters, lastUpdated, services, onLoadingC
                 value={count}
                 icon={IconComponent}
                 color={getPriorityColor(priority)}
-                onClick={() => setSelectedPriority(priority)}
               />
             );
           })}

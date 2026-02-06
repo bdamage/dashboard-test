@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Clock, Target, AlertCircle, CheckCircle, TrendingUp, AlertTriangle } from 'lucide-react';
+import { Clock, Target, AlertCircle, CheckCircle, AlertTriangle } from 'lucide-react';
 import { display, value } from '../utils/fields.js';
 import MetricCard from './MetricCard.jsx';
 import './SLATab.css';
@@ -11,7 +11,6 @@ export default function SLATab({ filters, lastUpdated, services, onLoadingChange
     performance: [],
     slaTypes: []
   });
-  const [selectedSLAType, setSelectedSLAType] = useState('');
   const [error, setError] = useState(null);
 
   useEffect(() => {

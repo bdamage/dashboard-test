@@ -9,7 +9,6 @@ import {
   TrendingUp,
   TrendingDown,
   BarChart3,
-  ArrowRight,
   Target,
   Timer,
   AlertTriangle

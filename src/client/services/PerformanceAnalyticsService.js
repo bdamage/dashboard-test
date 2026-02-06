@@ -88,7 +88,7 @@ export class PerformanceAnalyticsService {
       query += `^priority=${filters.priority}`;
     }
 
-    const response = await fetch(`${this.baseUrl}/incident?sysparm_query=${encodeURIComponent(query)}&sysparm_display_value=all&sysparm_fields=sys_created_on,resolved_at,priority&sysparam_limit=5000`, {
+    const response = await fetch(`${this.baseUrl}/incident?sysparm_query=${encodeURIComponent(query)}&sysparm_display_value=all&sysparm_fields=sys_created_on,resolved_at,priority&sysparm_limit=5000`, {
       headers: {
         "Accept": "application/json",
         "X-UserToken": window.g_ck
