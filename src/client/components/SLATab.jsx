@@ -31,6 +31,32 @@ export default function SLATab({ filters, lastUpdated, services, onLoadingChange
         services.sla.getSLATypes()
       ]);
 
+      // DIAGNOSTIC: Log SLA data structures
+      console.log('[ITSM] SLA data fetched:', {
+        complianceRate,
+        breachesCount: breaches.length,
+        performanceRecordsCount: performanceRecords.length,
+        slaTypesCount: slaTypes.length
+      });
+
+      if (performanceRecords.length > 0) {
+        console.log('[ITSM] Sample SLA performance record:', {
+          fullRecord: performanceRecords[0],
+          sla: performanceRecords[0].sla,
+          has_breached: performanceRecords[0].has_breached,
+          percentage: performanceRecords[0].percentage
+        });
+      }
+
+      if (breaches.length > 0) {
+        console.log('[ITSM] Sample SLA breach record:', {
+          fullRecord: breaches[0],
+          task: breaches[0].task,
+          sla: breaches[0].sla,
+          percentage: breaches[0].percentage
+        });
+      }
+
       setSlaData({
         complianceRate,
         breaches,
@@ -58,23 +84,41 @@ export default function SLATab({ filters, lastUpdated, services, onLoadingChange
 
   const getSLAsByType = () => {
     const slasByType = {};
-    slaData.performance.forEach(sla => {
+    console.log(`[ITSM] Processing ${slaData.performance.length} SLA performance records for type breakdown`);
+
+    slaData.performance.forEach((sla, index) => {
       const slaType = display(sla.sla) || 'Unknown';
+      const hasBreached = display(sla.has_breached);
+
       if (!slasByType[slaType]) {
         slasByType[slaType] = { total: 0, breached: 0 };
       }
       slasByType[slaType].total++;
-      if (display(sla.has_breached) === 'true') {
+
+      if (hasBreached === 'true') {
         slasByType[slaType].breached++;
+      }
+
+      // Log first few for debugging
+      if (index < 3) {
+        console.log(`[ITSM] SLA record ${index}:`, {
+          type: slaType,
+          hasBreached: hasBreached,
+          breachedRaw: sla.has_breached
+        });
       }
     });
 
-    return Object.entries(slasByType).map(([type, data]) => ({
+    const result = Object.entries(slasByType).map(([type, data]) => ({
       type,
       total: data.total,
       breached: data.breached,
       compliance: data.total > 0 ? Math.round(((data.total - data.breached) / data.total) * 100) : 0
     }));
+
+    console.log('[ITSM] SLA by type results:', result);
+
+    return result;
   };
 
   const getRecentBreaches = () => {

@@ -47,6 +47,20 @@ export class SLAService {
 
       const data = await response.json();
       const results = data.result || [];
+
+      // DIAGNOSTIC: Log first SLA performance record to inspect data structure
+      if (results.length > 0) {
+        console.log('[ITSM] Sample SLA performance data structure:', {
+          fullRecord: results[0],
+          task: results[0].task,
+          sla: results[0].sla,
+          has_breached: results[0].has_breached,
+          has_breached_type: typeof results[0].has_breached,
+          percentage: results[0].percentage,
+          stage: results[0].stage
+        });
+      }
+
       logApiSuccess(SVC, 'getSLAPerformance', {
         recordCount: results.length,
         durationMs: Math.round(performance.now() - t0),
@@ -68,10 +82,17 @@ export class SLAService {
 
   async getSLABreaches(filters = {}) {
     const slaData = await this.getSLAPerformance(filters);
-    return slaData.filter(sla => {
+
+    console.log(`[ITSM] Filtering ${slaData.length} SLA records for breaches`);
+
+    const breaches = slaData.filter(sla => {
       const breached = sla.has_breached?.display_value || sla.has_breached?.value;
       return breached === 'true' || breached === true;
     });
+
+    console.log(`[ITSM] Found ${breaches.length} SLA breaches out of ${slaData.length} total SLAs`);
+
+    return breaches;
   }
 
   // Calculates compliance from a single fetch instead of double-fetching
@@ -79,8 +100,11 @@ export class SLAService {
     const allSLAs = await this.getSLAPerformance(filters);
 
     if (allSLAs.length === 0) {
+      console.warn('[ITSM] No SLA records found, returning default compliance rate');
       return { rate: 92.5, total: 100, breached: 7, compliant: 93 };
     }
+
+    console.log(`[ITSM] Calculating SLA compliance from ${allSLAs.length} records`);
 
     const breached = allSLAs.filter(sla => {
       const b = sla.has_breached?.display_value || sla.has_breached?.value;
@@ -90,6 +114,14 @@ export class SLAService {
     const total = allSLAs.length;
     const compliant = total - breached;
     const rate = Math.round((compliant / total) * 10000) / 100;
+
+    console.log('[ITSM] SLA compliance calculation result:', {
+      rate: rate + '%',
+      total,
+      breached,
+      compliant,
+      breachRate: Math.round((breached / total) * 100) + '%'
+    });
 
     return { rate, total, breached, compliant };
   }
