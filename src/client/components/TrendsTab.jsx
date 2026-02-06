@@ -99,36 +99,49 @@ export default function TrendsTab({ filters, lastUpdated, services, onLoadingCha
         });
 
       // Process MTTR trends
+      console.log(`[ITSM] Processing MTTR trends from ${resolvedIncidents.length} resolved incidents`);
+
       const mttrGroups = groupByTimeInterval(
         resolvedIncidents
-          .filter(i => display(i.resolved_at) && display(i.sys_created_on))
+          .filter(i => display(i.resolved_at) && display(i.opened_at))
           .map(i => {
-            const created = new Date(display(i.sys_created_on));
+            const opened = new Date(display(i.opened_at));
             const resolved = new Date(display(i.resolved_at));
-            const mttr = (resolved - created) / (1000 * 60 * 60); // hours
-            
+            const mttr = (resolved - opened) / (1000 * 60 * 60); // hours
+
             return {
-              sys_created_on: display(i.sys_created_on),
+              resolved_at: display(i.resolved_at), // Group by resolution date for trend
               mttr: mttr > 0 ? mttr : 0
             };
-          }), 
-        'sys_created_on', 
+          }),
+        'resolved_at', // Group by when resolved, not when created
         timeInterval
       );
+
+      console.log(`[ITSM] MTTR trend groups:`, {
+        totalGroups: Object.keys(mttrGroups).length,
+        dates: Object.keys(mttrGroups).sort()
+      });
 
       const mttrTrends = Object.entries(mttrGroups)
         .sort(([a], [b]) => new Date(a) - new Date(b))
         .map(([date, incidents]) => {
           const mttrValues = incidents.map(i => i.mttr).filter(m => m > 0);
-          const avgMttr = mttrValues.length > 0 ? 
+          const avgMttr = mttrValues.length > 0 ?
             Math.round((mttrValues.reduce((a, b) => a + b, 0) / mttrValues.length) * 10) / 10 : 0;
-          
+
           return {
             date: formatDateLabel(date, timeInterval),
             count: avgMttr,
             type: 'mttr'
           };
         });
+
+      console.log(`[ITSM] MTTR trends result:`, {
+        dataPoints: mttrTrends.length,
+        dates: mttrTrends.map(t => t.date),
+        values: mttrTrends.map(t => t.count)
+      });
 
       setTrendsData({
         incidentTrends,
