@@ -168,7 +168,7 @@ export class IncidentService {
       }
 
       const limit = filters.recordLimit || 2000;
-      const url = `${this.baseUrl}?sysparm_query=${encodeURIComponent(query)}&sysparm_display_value=all&sysparm_limit=${limit}&sysparm_fields=sys_id,number,sys_created_on,resolved_at,priority,category`;
+      const url = `${this.baseUrl}?sysparm_query=${encodeURIComponent(query)}&sysparm_display_value=all&sysparm_limit=${limit}&sysparm_fields=sys_id,number,opened_at,sys_created_on,resolved_at,priority,category`;
 
       logApiCall(SVC, 'getResolvedIncidents', { url, query, filters });
 
@@ -193,6 +193,7 @@ export class IncidentService {
           fullRecord: results[0],
           priority: results[0].priority,
           priorityType: typeof results[0].priority,
+          opened_at: results[0].opened_at,
           resolved_at: results[0].resolved_at,
           sys_created_on: results[0].sys_created_on
         });

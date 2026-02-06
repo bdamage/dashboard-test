@@ -48,20 +48,23 @@ export default function MTTRTab({ filters, lastUpdated, services, onLoadingChang
           fullRecord: resolvedIncidents[0],
           priority: resolvedIncidents[0].priority,
           priorityType: typeof resolvedIncidents[0].priority,
+          opened_at: resolvedIncidents[0].opened_at,
           resolved_at: resolvedIncidents[0].resolved_at,
-          sys_created_on: resolvedIncidents[0].sys_created_on
+          timeDiff: display(resolvedIncidents[0].opened_at) && display(resolvedIncidents[0].resolved_at)
+            ? ((new Date(display(resolvedIncidents[0].resolved_at)) - new Date(display(resolvedIncidents[0].opened_at))) / (1000 * 60 * 60)).toFixed(2) + ' hours'
+            : 'N/A'
         });
       }
 
       console.log(`[ITSM] Processing ${resolvedIncidents.length} resolved incidents for MTTR calculation`);
 
-      // Calculate MTTR values in hours
+      // Calculate MTTR values in hours (from opened_at to resolved_at)
       const mttrValues = resolvedIncidents
-        .filter(incident => display(incident.resolved_at) && display(incident.sys_created_on))
+        .filter(incident => display(incident.resolved_at) && display(incident.opened_at))
         .map(incident => {
-          const created = new Date(display(incident.sys_created_on));
+          const opened = new Date(display(incident.opened_at));
           const resolved = new Date(display(incident.resolved_at));
-          const hours = (resolved - created) / (1000 * 60 * 60);
+          const hours = (resolved - opened) / (1000 * 60 * 60);
 
           return {
             ...incident,
