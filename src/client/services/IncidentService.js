@@ -1,6 +1,9 @@
 // Simplified Incident Service for ITSM Dashboard
 import { getLast120Days } from '../utils/dateUtils.js';
 import { display, sanitizeQueryValue } from '../utils/fields.js';
+import { logApiCall, logApiSuccess, logApiError } from '../utils/logger.js';
+
+const SVC = 'IncidentService';
 
 export class IncidentService {
   constructor() {
@@ -13,6 +16,7 @@ export class IncidentService {
   }
 
   async getOpenIncidents(filters = {}) {
+    const t0 = performance.now();
     try {
       const { start, end } = filters.dateRange || getLast120Days();
       let query = this.buildDateQuery(start, end) + '^active=true';
@@ -28,7 +32,11 @@ export class IncidentService {
       }
 
       const limit = filters.recordLimit || 2000;
-      const response = await fetch(`${this.baseUrl}?sysparm_query=${encodeURIComponent(query)}&sysparm_display_value=all&sysparm_limit=${limit}&sysparm_fields=sys_id,number,short_description,priority,state,category,assigned_to,sys_created_on`, {
+      const url = `${this.baseUrl}?sysparm_query=${encodeURIComponent(query)}&sysparm_display_value=all&sysparm_limit=${limit}&sysparm_fields=sys_id,number,short_description,priority,state,category,assigned_to,sys_created_on`;
+
+      logApiCall(SVC, 'getOpenIncidents', { url, query, filters });
+
+      const response = await fetch(url, {
         headers: {
           "Accept": "application/json",
           "Content-Type": "application/json",
@@ -41,11 +49,23 @@ export class IncidentService {
       }
 
       const data = await response.json();
-      return data.result || [];
+      const results = data.result || [];
+      logApiSuccess(SVC, 'getOpenIncidents', {
+        recordCount: results.length,
+        durationMs: Math.round(performance.now() - t0),
+        source: 'api'
+      });
+      return results;
 
     } catch (error) {
-      console.warn('Failed to fetch incidents, using demo data:', error.message);
-      return this.getMockIncidents();
+      logApiError(SVC, 'getOpenIncidents', error);
+      const mock = this.getMockIncidents();
+      logApiSuccess(SVC, 'getOpenIncidents', {
+        recordCount: mock.length,
+        durationMs: Math.round(performance.now() - t0),
+        source: 'mock'
+      });
+      return mock;
     }
   }
 
@@ -78,6 +98,7 @@ export class IncidentService {
   }
 
   async getResolvedIncidents(filters = {}) {
+    const t0 = performance.now();
     try {
       const { start, end } = filters.dateRange || getLast120Days();
       let query = this.buildDateQuery(start, end) + '^state=6';
@@ -90,7 +111,11 @@ export class IncidentService {
       }
 
       const limit = filters.recordLimit || 2000;
-      const response = await fetch(`${this.baseUrl}?sysparm_query=${encodeURIComponent(query)}&sysparm_display_value=all&sysparm_limit=${limit}&sysparm_fields=sys_id,number,sys_created_on,resolved_at,priority,category`, {
+      const url = `${this.baseUrl}?sysparm_query=${encodeURIComponent(query)}&sysparm_display_value=all&sysparm_limit=${limit}&sysparm_fields=sys_id,number,sys_created_on,resolved_at,priority,category`;
+
+      logApiCall(SVC, 'getResolvedIncidents', { url, query, filters });
+
+      const response = await fetch(url, {
         headers: {
           "Accept": "application/json",
           "Content-Type": "application/json",
@@ -103,11 +128,23 @@ export class IncidentService {
       }
 
       const data = await response.json();
-      return data.result || [];
+      const results = data.result || [];
+      logApiSuccess(SVC, 'getResolvedIncidents', {
+        recordCount: results.length,
+        durationMs: Math.round(performance.now() - t0),
+        source: 'api'
+      });
+      return results;
 
     } catch (error) {
-      console.warn('Failed to fetch resolved incidents, using demo data:', error.message);
-      return this.getMockResolvedIncidents();
+      logApiError(SVC, 'getResolvedIncidents', error);
+      const mock = this.getMockResolvedIncidents();
+      logApiSuccess(SVC, 'getResolvedIncidents', {
+        recordCount: mock.length,
+        durationMs: Math.round(performance.now() - t0),
+        source: 'mock'
+      });
+      return mock;
     }
   }
 

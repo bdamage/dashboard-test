@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { GitBranch, CheckCircle, Clock, AlertTriangle, XCircle, Play, User, Calendar } from 'lucide-react';
 import { display, value } from '../utils/fields.js';
 import MetricCard from './MetricCard.jsx';
+import { logTabLoad } from '../utils/logger.js';
 import './ChangeTab.css';
 
 export default function ChangeTab({ filters, lastUpdated, services, onLoadingChange }) {
@@ -18,6 +19,7 @@ export default function ChangeTab({ filters, lastUpdated, services, onLoadingCha
   }, [filters, lastUpdated, services]);
 
   const loadChangeData = async () => {
+    const t0 = performance.now();
     try {
       onLoadingChange(true);
       setError(null);
@@ -34,6 +36,16 @@ export default function ChangeTab({ filters, lastUpdated, services, onLoadingCha
         stateCounts,
         successfulChanges,
         timeSeries
+      });
+
+      logTabLoad('Changes', {
+        durationMs: Math.round(performance.now() - t0),
+        dataSummary: {
+          'total changes': `${allChanges.length} records`,
+          'states': JSON.stringify(stateCounts),
+          'successful': `${successfulChanges.length} records`,
+          'time series': `${timeSeries.length} data points`
+        }
       });
 
     } catch (err) {

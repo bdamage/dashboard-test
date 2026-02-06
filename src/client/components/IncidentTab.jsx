@@ -3,6 +3,7 @@ import { AlertTriangle, AlertCircle, CheckCircle, Circle, User, Clock } from 'lu
 import { display, value } from '../utils/fields.js';
 import { groupByTimeInterval } from '../utils/chartUtils.js';
 import MetricCard from './MetricCard.jsx';
+import { logTabLoad } from '../utils/logger.js';
 import './IncidentTab.css';
 
 export default function IncidentTab({ filters, lastUpdated, services, onLoadingChange }) {
@@ -19,6 +20,7 @@ export default function IncidentTab({ filters, lastUpdated, services, onLoadingC
   }, [filters, lastUpdated, services]);
 
   const loadIncidentData = async () => {
+    const t0 = performance.now();
     try {
       onLoadingChange(true);
       setError(null);
@@ -42,6 +44,16 @@ export default function IncidentTab({ filters, lastUpdated, services, onLoadingC
         priorityCounts,
         categoryBreakdown,
         timeSeries: timeSeriesData
+      });
+
+      logTabLoad('Incidents', {
+        durationMs: Math.round(performance.now() - t0),
+        dataSummary: {
+          'open incidents': `${openIncidents.length} records`,
+          'priority counts': JSON.stringify(priorityCounts),
+          'categories': `${Object.keys(categoryBreakdown).length} categories`,
+          'time series': `${timeSeriesData.length} data points`
+        }
       });
 
     } catch (err) {

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Clock, Target, AlertCircle, CheckCircle, AlertTriangle } from 'lucide-react';
 import { display, value } from '../utils/fields.js';
 import MetricCard from './MetricCard.jsx';
+import { logTabLoad } from '../utils/logger.js';
 import './SLATab.css';
 
 export default function SLATab({ filters, lastUpdated, services, onLoadingChange }) {
@@ -18,6 +19,7 @@ export default function SLATab({ filters, lastUpdated, services, onLoadingChange
   }, [filters, lastUpdated, services]);
 
   const loadSLAData = async () => {
+    const t0 = performance.now();
     try {
       onLoadingChange(true);
       setError(null);
@@ -34,6 +36,16 @@ export default function SLATab({ filters, lastUpdated, services, onLoadingChange
         breaches,
         performance,
         slaTypes
+      });
+
+      logTabLoad('SLA', {
+        durationMs: Math.round(performance.now() - t0),
+        dataSummary: {
+          'compliance rate': `${complianceRate.rate}% (${complianceRate.compliant}/${complianceRate.total})`,
+          'breaches': `${breaches.length} records`,
+          'performance records': `${performance.length} records`,
+          'sla types': `${slaTypes.length} types`
+        }
       });
 
     } catch (err) {

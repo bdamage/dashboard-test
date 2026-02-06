@@ -3,6 +3,7 @@ import { Clipboard, RefreshCw, Target, Zap, BarChart3, Heart } from 'lucide-reac
 import { display } from '../utils/fields.js';
 import { calculateAverage, calculateMedian } from '../utils/chartUtils.js';
 import MetricCard from './MetricCard.jsx';
+import { logTabLoad } from '../utils/logger.js';
 import './OverviewTab.css';
 
 export default function OverviewTab({ filters, lastUpdated, services, onLoadingChange }) {
@@ -20,6 +21,7 @@ export default function OverviewTab({ filters, lastUpdated, services, onLoadingC
 
   const loadOverviewData = useCallback(async () => {
     if (isLoading) return;
+    const t0 = performance.now();
 
     try {
       setIsLoading(true);
@@ -49,6 +51,16 @@ export default function OverviewTab({ filters, lastUpdated, services, onLoadingC
       const changeData = changes.status === 'fulfilled' ? changes.value : [];
       const slaResult = slaData.status === 'fulfilled' ? slaData.value : { rate: 0 };
       const resolvedData = resolvedIncidents.status === 'fulfilled' ? resolvedIncidents.value : [];
+
+      logTabLoad('Overview', {
+        durationMs: Math.round(performance.now() - t0),
+        dataSummary: {
+          'incidents (open)': `${incidentData.length} records (${incidents.status})`,
+          'changes': `${changeData.length} records (${changes.status})`,
+          'sla compliance': `${slaResult.rate || 0}% (${slaData.status})`,
+          'resolved incidents': `${resolvedData.length} records (${resolvedIncidents.status})`
+        }
+      });
 
       const mttrValues = resolvedData
         .filter(incident => {

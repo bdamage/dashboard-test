@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { display, value } from '../utils/fields.js';
 import { calculateAverage, calculateMedian, formatDuration } from '../utils/chartUtils.js';
+import { logTabLoad } from '../utils/logger.js';
 import {
   BarChart3,
   TrendingUp,
@@ -34,6 +35,7 @@ export default function MTTRTab({ filters, lastUpdated, services, onLoadingChang
   }, [filters, lastUpdated, services]);
 
   const loadMTTRData = async () => {
+    const t0 = performance.now();
     try {
       onLoadingChange(true);
       setError(null);
@@ -95,6 +97,18 @@ export default function MTTRTab({ filters, lastUpdated, services, onLoadingChang
         mttrByPriority,
         mttrByCategory,
         mttrDistribution
+      });
+
+      logTabLoad('MTTR', {
+        durationMs: Math.round(performance.now() - t0),
+        dataSummary: {
+          'resolved incidents (raw)': `${resolvedIncidents.length} records`,
+          'with valid MTTR': `${mttrValues.length} records`,
+          'avg MTTR': `${avgMTTR.toFixed(1)}h`,
+          'median MTTR': `${medianMTTR.toFixed(1)}h`,
+          'priorities': Object.keys(mttrByPriority).join(', ') || 'none',
+          'categories': `${Object.keys(mttrByCategory).length} categories`
+        }
       });
 
     } catch (err) {

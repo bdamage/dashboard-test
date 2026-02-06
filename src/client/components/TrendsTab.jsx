@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { display } from '../utils/fields.js';
 import { groupByTimeInterval } from '../utils/chartUtils.js';
+import { logTabLoad } from '../utils/logger.js';
 import {
   Ticket,
   RefreshCw,
@@ -31,6 +32,7 @@ export default function TrendsTab({ filters, lastUpdated, services, onLoadingCha
   }, [filters, lastUpdated, services, timeInterval]);
 
   const loadTrendsData = async () => {
+    const t0 = performance.now();
     try {
       onLoadingChange(true);
       setError(null);
@@ -133,6 +135,17 @@ export default function TrendsTab({ filters, lastUpdated, services, onLoadingCha
         changeTrends,
         slaTrends,
         mttrTrends
+      });
+
+      logTabLoad('Trends', {
+        durationMs: Math.round(performance.now() - t0),
+        dataSummary: {
+          'incident time series': `${incidentTimeSeries.length} raw → ${incidentTrends.length} data points`,
+          'change time series': `${changeTimeSeries.length} raw → ${changeTrends.length} data points`,
+          'sla records': `${slaData.length} raw → ${slaTrends.length} data points`,
+          'resolved (mttr)': `${resolvedIncidents.length} raw → ${mttrTrends.length} data points`,
+          'interval': timeInterval
+        }
       });
 
     } catch (err) {

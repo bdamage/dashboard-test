@@ -1,6 +1,9 @@
 // Simplified Change Service for ITSM Dashboard
 import { getLast120Days } from '../utils/dateUtils.js';
 import { sanitizeQueryValue } from '../utils/fields.js';
+import { logApiCall, logApiSuccess, logApiError } from '../utils/logger.js';
+
+const SVC = 'ChangeService';
 
 export class ChangeService {
   constructor() {
@@ -13,6 +16,7 @@ export class ChangeService {
   }
 
   async getChanges(filters = {}) {
+    const t0 = performance.now();
     try {
       const { start, end } = filters.dateRange || getLast120Days();
       let query = this.buildDateQuery(start, end);
@@ -28,7 +32,11 @@ export class ChangeService {
       }
 
       const limit = filters.recordLimit || 2000;
-      const response = await fetch(`${this.baseUrl}?sysparm_query=${encodeURIComponent(query)}&sysparm_display_value=all&sysparm_limit=${limit}&sysparm_fields=sys_id,number,short_description,state,type,assigned_to,sys_created_on`, {
+      const url = `${this.baseUrl}?sysparm_query=${encodeURIComponent(query)}&sysparm_display_value=all&sysparm_limit=${limit}&sysparm_fields=sys_id,number,short_description,state,type,assigned_to,sys_created_on`;
+
+      logApiCall(SVC, 'getChanges', { url, query, filters });
+
+      const response = await fetch(url, {
         headers: {
           "Accept": "application/json",
           "Content-Type": "application/json",
@@ -41,11 +49,23 @@ export class ChangeService {
       }
 
       const data = await response.json();
-      return data.result || [];
+      const results = data.result || [];
+      logApiSuccess(SVC, 'getChanges', {
+        recordCount: results.length,
+        durationMs: Math.round(performance.now() - t0),
+        source: 'api'
+      });
+      return results;
 
     } catch (error) {
-      console.warn('Failed to fetch changes, using demo data:', error.message);
-      return this.getMockChanges();
+      logApiError(SVC, 'getChanges', error);
+      const mock = this.getMockChanges();
+      logApiSuccess(SVC, 'getChanges', {
+        recordCount: mock.length,
+        durationMs: Math.round(performance.now() - t0),
+        source: 'mock'
+      });
+      return mock;
     }
   }
 

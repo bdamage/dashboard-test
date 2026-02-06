@@ -1,6 +1,9 @@
 // Simplified SLA Service for ITSM Dashboard
 import { getLast120Days } from '../utils/dateUtils.js';
 import { sanitizeQueryValue } from '../utils/fields.js';
+import { logApiCall, logApiSuccess, logApiError } from '../utils/logger.js';
+
+const SVC = 'SLAService';
 
 export class SLAService {
   constructor() {
@@ -13,6 +16,7 @@ export class SLAService {
   }
 
   async getSLAPerformance(filters = {}) {
+    const t0 = performance.now();
     try {
       const { start, end } = filters.dateRange || getLast120Days();
       let query = this.buildDateQuery(start, end) + '^task.sys_class_name=incident';
@@ -25,7 +29,11 @@ export class SLAService {
       }
 
       const limit = filters.recordLimit || 2000;
-      const response = await fetch(`${this.baseUrl}?sysparm_query=${encodeURIComponent(query)}&sysparm_display_value=all&sysparm_fields=sys_id,task,sla,stage,has_breached,percentage,sys_created_on&sysparm_limit=${limit}`, {
+      const url = `${this.baseUrl}?sysparm_query=${encodeURIComponent(query)}&sysparm_display_value=all&sysparm_fields=sys_id,task,sla,stage,has_breached,percentage,sys_created_on&sysparm_limit=${limit}`;
+
+      logApiCall(SVC, 'getSLAPerformance', { url, query, filters });
+
+      const response = await fetch(url, {
         headers: {
           "Accept": "application/json",
           "Content-Type": "application/json",
@@ -38,11 +46,23 @@ export class SLAService {
       }
 
       const data = await response.json();
-      return data.result || [];
+      const results = data.result || [];
+      logApiSuccess(SVC, 'getSLAPerformance', {
+        recordCount: results.length,
+        durationMs: Math.round(performance.now() - t0),
+        source: 'api'
+      });
+      return results;
 
     } catch (error) {
-      console.warn('Failed to fetch SLA performance, using demo data:', error.message);
-      return this.getMockSLAData();
+      logApiError(SVC, 'getSLAPerformance', error);
+      const mock = this.getMockSLAData();
+      logApiSuccess(SVC, 'getSLAPerformance', {
+        recordCount: mock.length,
+        durationMs: Math.round(performance.now() - t0),
+        source: 'mock'
+      });
+      return mock;
     }
   }
 
@@ -75,8 +95,12 @@ export class SLAService {
   }
 
   async getSLATypes() {
+    const t0 = performance.now();
     try {
-      const response = await fetch('/api/now/table/contract_sla?sysparm_display_value=all&sysparm_fields=name&sysparm_limit=20', {
+      const url = '/api/now/table/contract_sla?sysparm_display_value=all&sysparm_fields=name&sysparm_limit=20';
+      logApiCall(SVC, 'getSLATypes', { url });
+
+      const response = await fetch(url, {
         headers: {
           "Accept": "application/json",
           "Content-Type": "application/json",
@@ -89,13 +113,25 @@ export class SLAService {
       }
 
       const data = await response.json();
-      return data.result || [];
+      const results = data.result || [];
+      logApiSuccess(SVC, 'getSLATypes', {
+        recordCount: results.length,
+        durationMs: Math.round(performance.now() - t0),
+        source: 'api'
+      });
+      return results;
     } catch (error) {
-      console.warn('Failed to fetch SLA types, using defaults:', error.message);
-      return [
+      logApiError(SVC, 'getSLATypes', error);
+      const mock = [
         { name: { display_value: 'Response Time', value: 'response_time' } },
         { name: { display_value: 'Resolution Time', value: 'resolution_time' } }
       ];
+      logApiSuccess(SVC, 'getSLATypes', {
+        recordCount: mock.length,
+        durationMs: Math.round(performance.now() - t0),
+        source: 'mock'
+      });
+      return mock;
     }
   }
 
