@@ -1,0 +1,278 @@
+/* Incident Tab Styles */
+.incident-tab {
+  padding: 2rem;
+}
+
+.incident-header {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.incident-header h2 {
+  margin: 0 0 0.5rem 0;
+  font-size: 1.8rem;
+  color: #333;
+}
+
+.incident-header p {
+  color: #666;
+  font-size: 1.1rem;
+  margin: 0;
+}
+
+.priority-metrics {
+  margin-bottom: 2rem;
+}
+
+.priority-metrics h3 {
+  margin: 0 0 1rem 0;
+  color: #333;
+  font-size: 1.3rem;
+}
+
+.priority-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.incident-content-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2rem;
+  margin-bottom: 2rem;
+}
+
+.category-breakdown,
+.recent-incidents {
+  background: #f8f9fa;
+  border-radius: 12px;
+  padding: 1.5rem;
+}
+
+.category-breakdown h3,
+.recent-incidents h3 {
+  margin: 0 0 1rem 0;
+  color: #333;
+  font-size: 1.2rem;
+}
+
+.category-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.category-item {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  background: white;
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.category-name {
+  font-weight: 600;
+  color: #333;
+  min-width: 100px;
+}
+
+.category-count {
+  background: #667eea;
+  color: white;
+  padding: 0.25rem 0.5rem;
+  border-radius: 12px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  min-width: 30px;
+  text-align: center;
+}
+
+.category-bar {
+  flex: 1;
+  height: 6px;
+  background: #e0e0e0;
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.category-progress {
+  height: 100%;
+  background: linear-gradient(90deg, #667eea, #764ba2);
+  border-radius: 3px;
+  transition: width 0.5s ease;
+}
+
+.incidents-table {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.incident-row {
+  display: grid;
+  grid-template-columns: 1fr 2fr 1fr 0.5fr;
+  gap: 1rem;
+  align-items: center;
+  background: white;
+  padding: 0.75rem;
+  border-radius: 6px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  transition: transform 0.2s ease;
+}
+
+.incident-row:hover {
+  transform: translateX(3px);
+}
+
+.incident-number {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 600;
+  color: #333;
+}
+
+.priority-badge {
+  padding: 0.2rem 0.5rem;
+  border-radius: 12px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: white;
+  text-align: center;
+  min-width: 25px;
+}
+
+.priority-badge.p1 {
+  background: #f44336;
+}
+
+.priority-badge.p2 {
+  background: #FF9800;
+}
+
+.priority-badge.p3 {
+  background: #FFC107;
+  color: #333;
+}
+
+.priority-badge.p4 {
+  background: #4CAF50;
+}
+
+.incident-description {
+  color: #555;
+  font-size: 0.9rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.incident-assignee {
+  color: #666;
+  font-size: 0.85rem;
+}
+
+.incident-age {
+  color: #888;
+  font-size: 0.8rem;
+  text-align: right;
+}
+
+.incident-timeline {
+  background: #f8f9fa;
+  border-radius: 12px;
+  padding: 1.5rem;
+}
+
+.incident-timeline h3 {
+  margin: 0 0 1rem 0;
+  color: #333;
+  font-size: 1.2rem;
+}
+
+.simple-chart {
+  display: flex;
+  align-items: end;
+  gap: 0.5rem;
+  height: 200px;
+  padding: 1rem;
+  background: white;
+  border-radius: 8px;
+  overflow-x: auto;
+}
+
+.chart-bar {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 40px;
+}
+
+.bar {
+  background: linear-gradient(to top, #667eea, #764ba2);
+  width: 24px;
+  border-radius: 3px 3px 0 0;
+  min-height: 5px;
+  transition: all 0.3s ease;
+}
+
+.bar:hover {
+  background: linear-gradient(to top, #5a6fd8, #6a42a0);
+  transform: scaleY(1.1);
+}
+
+.bar-label {
+  font-size: 0.7rem;
+  color: #666;
+  margin-top: 0.5rem;
+  writing-mode: vertical-rl;
+  text-orientation: mixed;
+}
+
+.chart-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 200px;
+  color: #888;
+  font-style: italic;
+  background: white;
+  border-radius: 8px;
+}
+
+/* Responsive design */
+@media (max-width: 1024px) {
+  .incident-content-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+  
+  .priority-cards {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+  .incident-tab {
+    padding: 1rem;
+  }
+  
+  .incident-row {
+    grid-template-columns: 1fr;
+    gap: 0.5rem;
+    text-align: left;
+  }
+  
+  .priority-cards {
+    grid-template-columns: 1fr;
+  }
+  
+  .bar-label {
+    writing-mode: horizontal-tb;
+    text-orientation: initial;
+  }
+}

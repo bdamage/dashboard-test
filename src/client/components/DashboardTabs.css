@@ -1,0 +1,114 @@
+/* Professional Dashboard Tabs */
+.dashboard-tabs {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 0 var(--space-xl);
+}
+
+.tab-navigation {
+  display: flex;
+  background: var(--bg-primary);
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+  box-shadow: var(--shadow-md);
+  margin-top: var(--space-lg);
+  overflow-x: auto;
+  border: 1px solid var(--border-color);
+  border-bottom: none;
+}
+
+.tab-button {
+  flex: 1;
+  min-width: 140px;
+  padding: var(--space-lg) var(--space-md);
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-sm);
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--text-secondary);
+  transition: all 0.2s ease;
+  border-bottom: 2px solid transparent;
+  position: relative;
+}
+
+.tab-button:hover {
+  background: var(--bg-tertiary);
+  color: var(--text-primary);
+}
+
+.tab-button.active {
+  color: var(--accent-primary);
+  border-bottom-color: var(--accent-primary);
+  background: var(--bg-primary);
+  font-weight: 600;
+}
+
+.tab-button.active::after {
+  content: '';
+  position: absolute;
+  bottom: -1px;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: var(--accent-primary);
+}
+
+.tab-icon {
+  font-size: 1.125rem;
+  opacity: 0.8;
+}
+
+.tab-button.active .tab-icon {
+  opacity: 1;
+}
+
+.tab-label {
+  font-weight: inherit;
+}
+
+.tab-content {
+  background: var(--bg-primary);
+  border-radius: 0 0 var(--radius-lg) var(--radius-lg);
+  box-shadow: var(--shadow-md);
+  min-height: 600px;
+  border: 1px solid var(--border-color);
+  border-top: none;
+}
+
+/* Responsive tabs */
+@media (max-width: 1024px) {
+  .tab-button {
+    min-width: 100px;
+    font-size: 0.8rem;
+    padding: var(--space-md) var(--space-sm);
+  }
+}
+
+@media (max-width: 768px) {
+  .dashboard-tabs {
+    padding: 0 var(--space-md);
+  }
+  
+  .tab-navigation {
+    margin-top: var(--space-sm);
+  }
+  
+  .tab-button {
+    min-width: 60px;
+    padding: var(--space-md) var(--space-xs);
+    flex-direction: column;
+    gap: var(--space-xs);
+  }
+  
+  .tab-label {
+    display: none;
+  }
+  
+  .tab-icon {
+    font-size: 1.25rem;
+  }
+}

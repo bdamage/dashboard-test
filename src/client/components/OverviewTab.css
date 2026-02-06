@@ -1,0 +1,150 @@
+/* Professional Overview Tab */
+.overview-tab {
+  padding: var(--space-xl);
+}
+
+.overview-header {
+  text-align: center;
+  margin-bottom: var(--space-xl);
+  padding-bottom: var(--space-lg);
+  border-bottom: 1px solid var(--border-color);
+}
+
+.overview-header h2 {
+  margin: 0 0 var(--space-sm) 0;
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  letter-spacing: -0.025em;
+}
+
+.overview-subtitle {
+  color: var(--text-secondary);
+  font-size: 1rem;
+  margin: 0;
+  font-weight: 400;
+}
+
+.metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: var(--space-lg);
+  margin-bottom: var(--space-xl);
+}
+
+.insights-section {
+  background: var(--bg-secondary);
+  border-radius: var(--radius-lg);
+  padding: var(--space-xl);
+  border: 1px solid var(--border-color);
+}
+
+.insights-section h3 {
+  margin: 0 0 var(--space-lg) 0;
+  color: var(--text-primary);
+  font-size: 1.25rem;
+  font-weight: 600;
+}
+
+.insights-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: var(--space-lg);
+}
+
+.insight-card {
+  background: var(--bg-primary);
+  padding: var(--space-lg);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-color);
+  transition: all 0.2s ease;
+  position: relative;
+}
+
+.insight-card:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-md);
+}
+
+.insight-card.success {
+  border-left: 4px solid var(--success);
+}
+
+.insight-card.warning {
+  border-left: 4px solid var(--warning);
+}
+
+.insight-card.critical {
+  border-left: 4px solid var(--error);
+}
+
+.insight-card.info {
+  border-left: 4px solid var(--info);
+}
+
+.insight-content h4 {
+  margin: 0 0 var(--space-sm) 0;
+  color: var(--text-primary);
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.insight-content p {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+
+/* Health score specific styling */
+.metric-card[data-metric="health"] {
+  position: relative;
+  overflow: hidden;
+}
+
+.metric-card[data-metric="health"]::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 4px;
+  height: 100%;
+  background: linear-gradient(to bottom, var(--success), var(--warning), var(--error));
+  opacity: 0.3;
+}
+
+/* Responsive design */
+@media (max-width: 1024px) {
+  .metrics-grid {
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: var(--space-md);
+  }
+  
+  .insights-grid {
+    grid-template-columns: 1fr;
+    gap: var(--space-md);
+  }
+}
+
+@media (max-width: 768px) {
+  .overview-tab {
+    padding: var(--space-lg);
+  }
+  
+  .overview-header h2 {
+    font-size: 1.5rem;
+  }
+  
+  .overview-subtitle {
+    font-size: 0.875rem;
+  }
+  
+  .insights-section {
+    padding: var(--space-lg);
+  }
+  
+  .metrics-grid {
+    grid-template-columns: 1fr;
+    gap: var(--space-md);
+  }
+}

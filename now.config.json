@@ -1,0 +1,6 @@
+{
+  "scope": "x_snc_dashboardvib",
+  "scopeId": "26e59387937af250439e7f718bba10a3",
+  "name": "Dashboard-vibe",
+  "tsconfigPath": "./src/server/tsconfig.json"
+}
