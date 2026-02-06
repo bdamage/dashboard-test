@@ -1,5 +1,9 @@
 // Simplified Change Service for ITSM Dashboard
 import { getLast120Days } from '../utils/dateUtils.js';
+import { sanitizeQueryValue } from '../utils/fields.js';
+import { logApiCall, logApiSuccess, logApiError } from '../utils/logger.js';
+
+const SVC = 'ChangeService';
 
 export class ChangeService {
   constructor() {
@@ -7,31 +11,32 @@ export class ChangeService {
     this.baseUrl = `/api/now/table/${this.tableName}`;
   }
 
-  // Simplified query builder
   buildDateQuery(start, end) {
     return `sys_created_on>=${start}^sys_created_on<=${end}`;
   }
 
-  // Get all changes with simplified filtering
   async getChanges(filters = {}) {
+    const t0 = performance.now();
     try {
       const { start, end } = filters.dateRange || getLast120Days();
       let query = this.buildDateQuery(start, end);
-      
+
       if (filters.state) {
-        query += `^state=${filters.state}`;
+        query += `^state=${sanitizeQueryValue(filters.state)}`;
       }
       if (filters.type) {
-        query += `^type=${filters.type}`;
+        query += `^type=${sanitizeQueryValue(filters.type)}`;
       }
       if (filters.assignmentGroup) {
-        query += `^assignment_group.name=${filters.assignmentGroup}`;
+        query += `^assignment_group.name=${sanitizeQueryValue(filters.assignmentGroup)}`;
       }
 
-      console.log('Change query:', query);
-
       const limit = filters.recordLimit || 2000;
-      const response = await fetch(`${this.baseUrl}?sysparm_query=${encodeURIComponent(query)}&sysparm_display_value=all&sysparm_limit=${limit}&sysparm_fields=sys_id,number,short_description,state,type,assigned_to,sys_created_on`, {
+      const url = `${this.baseUrl}?sysparm_query=${encodeURIComponent(query)}&sysparm_display_value=all&sysparm_limit=${limit}&sysparm_fields=sys_id,number,short_description,state,type,assigned_to,sys_created_on`;
+
+      logApiCall(SVC, 'getChanges', { url, query, filters });
+
+      const response = await fetch(url, {
         headers: {
           "Accept": "application/json",
           "Content-Type": "application/json",
@@ -40,72 +45,57 @@ export class ChangeService {
       });
 
       if (!response.ok) {
-        const errorText = await response.text();
-        console.error('Change API Error:', response.status, errorText);
-        throw new Error(`HTTP ${response.status}: ${errorText}`);
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
       }
 
       const data = await response.json();
-      console.log('Changes loaded:', data.result?.length || 0);
-      return data.result || [];
+      const results = data.result || [];
+      logApiSuccess(SVC, 'getChanges', {
+        recordCount: results.length,
+        durationMs: Math.round(performance.now() - t0),
+        source: 'api'
+      });
+      return results;
 
     } catch (error) {
-      console.error('Failed to fetch changes:', error);
-      return this.getMockChanges();
+      logApiError(SVC, 'getChanges', error);
+      const mock = this.getMockChanges();
+      logApiSuccess(SVC, 'getChanges', {
+        recordCount: mock.length,
+        durationMs: Math.round(performance.now() - t0),
+        source: 'mock'
+      });
+      return mock;
     }
   }
 
-  // Get change counts by state
   async getChangeCountsByState(filters = {}) {
-    try {
-      const changes = await this.getChanges(filters);
-      const stateCounts = {};
-      
-      changes.forEach(change => {
-        const state = change.state?.display_value || 'Unknown';
-        stateCounts[state] = (stateCounts[state] || 0) + 1;
-      });
+    const changes = await this.getChanges(filters);
+    const stateCounts = {};
 
-      return stateCounts;
-    } catch (error) {
-      console.error('Failed to get change state counts:', error);
-      return {
-        'New': 5,
-        'Assess': 8,
-        'Scheduled': 12,
-        'Completed': 25,
-        'Failed': 3
-      };
-    }
+    changes.forEach(change => {
+      const state = change.state?.display_value || 'Unknown';
+      stateCounts[state] = (stateCounts[state] || 0) + 1;
+    });
+
+    return stateCounts;
   }
 
-  // Get successful changes count
   async getSuccessfulChanges(filters = {}) {
-    try {
-      const changes = await this.getChanges(filters);
-      return changes.filter(change => {
-        const state = change.state?.display_value || change.state?.value;
-        return state === 'Completed' || state === '3';
-      });
-    } catch (error) {
-      console.error('Failed to get successful changes:', error);
-      return this.getMockChanges().slice(0, 15);
-    }
+    const changes = await this.getChanges(filters);
+    return changes.filter(change => {
+      const state = change.state?.display_value || change.state?.value;
+      return state === 'Completed' || state === '3';
+    });
   }
 
-  // Get changes time series
   async getChangeTimeSeries(filters = {}) {
-    try {
-      const changes = await this.getChanges(filters);
-      return changes.map(change => ({
-        sys_created_on: change.sys_created_on,
-        state: change.state,
-        type: change.type
-      }));
-    } catch (error) {
-      console.error('Failed to get change time series:', error);
-      return [];
-    }
+    const changes = await this.getChanges(filters);
+    return changes.map(change => ({
+      sys_created_on: change.sys_created_on,
+      state: change.state,
+      type: change.type
+    }));
   }
 
   // Mock data for demo/fallback
@@ -114,16 +104,16 @@ export class ChangeService {
     const mockChanges = [];
     const states = [
       { name: 'New', value: '1' },
-      { name: 'Assess', value: '2' }, 
+      { name: 'Assess', value: '2' },
       { name: 'Scheduled', value: '3' },
       { name: 'Completed', value: '4' },
       { name: 'Failed', value: '-1' }
     ];
-    
+
     for (let i = 0; i < 25; i++) {
       const createdDate = new Date(now - Math.random() * 120 * 24 * 60 * 60 * 1000);
       const randomState = states[Math.floor(Math.random() * states.length)];
-      
+
       mockChanges.push({
         sys_id: { display_value: `change_${i}`, value: `change_${i}` },
         number: { display_value: `CHG000${3000 + i}`, value: `CHG000${3000 + i}` },
@@ -134,7 +124,7 @@ export class ChangeService {
         sys_created_on: { display_value: createdDate.toISOString(), value: createdDate.toISOString() }
       });
     }
-    
+
     return mockChanges;
   }
 }

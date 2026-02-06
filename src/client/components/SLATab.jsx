@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { Clock, Target, AlertCircle, CheckCircle, TrendingUp, AlertTriangle } from 'lucide-react';
+import { Clock, Target, AlertCircle, CheckCircle, AlertTriangle } from 'lucide-react';
 import { display, value } from '../utils/fields.js';
 import MetricCard from './MetricCard.jsx';
+import { logTabLoad } from '../utils/logger.js';
 import './SLATab.css';
 
 export default function SLATab({ filters, lastUpdated, services, onLoadingChange }) {
@@ -11,7 +12,6 @@ export default function SLATab({ filters, lastUpdated, services, onLoadingChange
     performance: [],
     slaTypes: []
   });
-  const [selectedSLAType, setSelectedSLAType] = useState('');
   const [error, setError] = useState(null);
 
   useEffect(() => {
@@ -19,22 +19,59 @@ export default function SLATab({ filters, lastUpdated, services, onLoadingChange
   }, [filters, lastUpdated, services]);
 
   const loadSLAData = async () => {
+    const t0 = performance.now();
     try {
       onLoadingChange(true);
       setError(null);
 
-      const [complianceRate, breaches, performance, slaTypes] = await Promise.all([
+      const [complianceRate, breaches, performanceRecords, slaTypes] = await Promise.all([
         services.sla.getSLAComplianceRate(filters),
         services.sla.getSLABreaches(filters),
         services.sla.getSLAPerformance(filters),
         services.sla.getSLATypes()
       ]);
 
+      // DIAGNOSTIC: Log SLA data structures
+      console.log('[ITSM] SLA data fetched:', {
+        complianceRate,
+        breachesCount: breaches.length,
+        performanceRecordsCount: performanceRecords.length,
+        slaTypesCount: slaTypes.length
+      });
+
+      if (performanceRecords.length > 0) {
+        console.log('[ITSM] Sample SLA performance record:', {
+          fullRecord: performanceRecords[0],
+          sla: performanceRecords[0].sla,
+          has_breached: performanceRecords[0].has_breached,
+          percentage: performanceRecords[0].percentage
+        });
+      }
+
+      if (breaches.length > 0) {
+        console.log('[ITSM] Sample SLA breach record:', {
+          fullRecord: breaches[0],
+          task: breaches[0].task,
+          sla: breaches[0].sla,
+          percentage: breaches[0].percentage
+        });
+      }
+
       setSlaData({
         complianceRate,
         breaches,
-        performance,
+        performance: performanceRecords,
         slaTypes
+      });
+
+      logTabLoad('SLA', {
+        durationMs: Math.round(performance.now() - t0),
+        dataSummary: {
+          'compliance rate': `${complianceRate.rate}% (${complianceRate.compliant}/${complianceRate.total})`,
+          'breaches': `${breaches.length} records`,
+          'performance records': `${performanceRecords.length} records`,
+          'sla types': `${slaTypes.length} types`
+        }
       });
 
     } catch (err) {
@@ -47,23 +84,41 @@ export default function SLATab({ filters, lastUpdated, services, onLoadingChange
 
   const getSLAsByType = () => {
     const slasByType = {};
-    slaData.performance.forEach(sla => {
+    console.log(`[ITSM] Processing ${slaData.performance.length} SLA performance records for type breakdown`);
+
+    slaData.performance.forEach((sla, index) => {
       const slaType = display(sla.sla) || 'Unknown';
+      const hasBreached = display(sla.has_breached);
+
       if (!slasByType[slaType]) {
         slasByType[slaType] = { total: 0, breached: 0 };
       }
       slasByType[slaType].total++;
-      if (display(sla.has_breached) === 'true') {
+
+      if (hasBreached === 'true') {
         slasByType[slaType].breached++;
+      }
+
+      // Log first few for debugging
+      if (index < 3) {
+        console.log(`[ITSM] SLA record ${index}:`, {
+          type: slaType,
+          hasBreached: hasBreached,
+          breachedRaw: sla.has_breached
+        });
       }
     });
 
-    return Object.entries(slasByType).map(([type, data]) => ({
+    const result = Object.entries(slasByType).map(([type, data]) => ({
       type,
       total: data.total,
       breached: data.breached,
       compliance: data.total > 0 ? Math.round(((data.total - data.breached) / data.total) * 100) : 0
     }));
+
+    console.log('[ITSM] SLA by type results:', result);
+
+    return result;
   };
 
   const getRecentBreaches = () => {
@@ -227,23 +282,27 @@ export default function SLATab({ filters, lastUpdated, services, onLoadingChange
 }
 
 // Simple SLA Gauge component
-function SLAGauge({ percentage }) {
+function SLAGauge({ percentage = 0 }) {
   const getColor = (pct) => {
     if (pct >= 95) return '#4CAF50';
-    if (pct >= 85) return '#FF9800'; 
+    if (pct >= 85) return '#FF9800';
     return '#F44336';
   };
 
-  const rotation = (percentage / 100) * 180 - 90;
+  // Ensure percentage is valid
+  const validPercentage = Math.max(0, Math.min(100, percentage || 0));
+  const rotation = (validPercentage / 100) * 180 - 90;
+  const needleColor = getColor(validPercentage);
 
   return (
     <div className="sla-gauge-wrapper">
       <div className="sla-gauge-arc">
-        <div 
+        <div
           className="sla-gauge-needle"
-          style={{ 
-            transform: `rotate(${rotation}deg)`,
-            borderTopColor: getColor(percentage)
+          style={{
+            transform: `translateX(-50%) rotate(${rotation}deg)`,
+            background: needleColor,
+            borderColor: needleColor
           }}
         />
       </div>

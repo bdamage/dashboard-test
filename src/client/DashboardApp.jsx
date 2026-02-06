@@ -3,10 +3,10 @@ import { Moon, Sun } from 'lucide-react';
 import { IncidentService } from './services/IncidentService.js';
 import { ChangeService } from './services/ChangeService.js';
 import { SLAService } from './services/SLAService.js';
-import { PerformanceAnalyticsService } from './services/PerformanceAnalyticsService.js';
 import DashboardTabs from './components/DashboardTabs.jsx';
 import FilterPanel from './components/FilterPanel.jsx';
 import LoadingSpinner from './components/LoadingSpinner.jsx';
+import { logStartup, logConnectionCheck, logRefreshCycle } from './utils/logger.js';
 import './dashboard.css';
 
 export default function DashboardApp() {
@@ -14,8 +14,7 @@ export default function DashboardApp() {
   const services = useMemo(() => ({
     incident: new IncidentService(),
     change: new ChangeService(),
-    sla: new SLAService(),
-    pa: new PerformanceAnalyticsService()
+    sla: new SLAService()
   }), []);
 
   // State
@@ -41,11 +40,17 @@ export default function DashboardApp() {
     localStorage.setItem('dashboard-theme', theme);
   }, [theme]);
 
+  // Startup logging
+  useEffect(() => {
+    logStartup();
+  }, []);
+
   // Check connection status on mount
   useEffect(() => {
     let mounted = true;
-    
+
     const checkConnection = async () => {
+      const t0 = performance.now();
       try {
         const response = await fetch('/api/now/table/sys_user?sysparm_limit=1', {
           headers: {
@@ -53,24 +58,28 @@ export default function DashboardApp() {
             "X-UserToken": window.g_ck || ''
           }
         });
-        
+        const ms = Math.round(performance.now() - t0);
+
         if (mounted) {
           if (response.ok) {
             setConnectionStatus('connected');
+            logConnectionCheck('connected', ms, `g_ck=${window.g_ck ? 'present' : 'missing'}`);
           } else {
             setConnectionStatus('limited');
+            logConnectionCheck('limited', ms, `HTTP ${response.status} — g_ck=${window.g_ck ? 'present' : 'missing'}`);
           }
         }
       } catch (error) {
-        console.warn('API connectivity check failed, using demo mode:', error);
+        const ms = Math.round(performance.now() - t0);
         if (mounted) {
           setConnectionStatus('demo');
+          logConnectionCheck('demo', ms, error.message);
         }
       }
     };
 
     checkConnection();
-    
+
     return () => {
       mounted = false;
     };
@@ -91,11 +100,13 @@ export default function DashboardApp() {
   }, []);
 
   const handleFilterChange = useCallback((newFilters) => {
+    logRefreshCycle('filter change');
     setFilters(prevFilters => ({ ...prevFilters, ...newFilters }));
     setLastUpdated(new Date());
   }, []);
 
   const handleManualRefresh = useCallback(() => {
+    logRefreshCycle('manual refresh');
     setLastUpdated(new Date());
   }, []);
 
@@ -173,7 +184,6 @@ export default function DashboardApp() {
         lastUpdated={lastUpdated}
         services={services}
         onLoadingChange={handleLoadingChange}
-        connectionStatus={connectionStatus}
       />
     </div>
   );

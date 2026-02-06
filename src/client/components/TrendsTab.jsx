@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { display, value } from '../utils/fields.js';
+import { display } from '../utils/fields.js';
 import { groupByTimeInterval } from '../utils/chartUtils.js';
+import { logTabLoad } from '../utils/logger.js';
 import {
   Ticket,
   RefreshCw,
@@ -9,7 +10,6 @@ import {
   TrendingUp,
   TrendingDown,
   BarChart3,
-  ArrowRight,
   Target,
   Timer,
   AlertTriangle
@@ -32,6 +32,7 @@ export default function TrendsTab({ filters, lastUpdated, services, onLoadingCha
   }, [filters, lastUpdated, services, timeInterval]);
 
   const loadTrendsData = async () => {
+    const t0 = performance.now();
     try {
       onLoadingChange(true);
       setError(null);
@@ -98,30 +99,37 @@ export default function TrendsTab({ filters, lastUpdated, services, onLoadingCha
         });
 
       // Process MTTR trends
+      console.log(`[ITSM] Processing MTTR trends from ${resolvedIncidents.length} resolved incidents`);
+
       const mttrGroups = groupByTimeInterval(
         resolvedIncidents
-          .filter(i => display(i.resolved_at) && display(i.sys_created_on))
+          .filter(i => display(i.resolved_at) && display(i.opened_at))
           .map(i => {
-            const created = new Date(display(i.sys_created_on));
+            const opened = new Date(display(i.opened_at));
             const resolved = new Date(display(i.resolved_at));
-            const mttr = (resolved - created) / (1000 * 60 * 60); // hours
-            
+            const mttr = (resolved - opened) / (1000 * 60 * 60); // hours
+
             return {
-              sys_created_on: display(i.sys_created_on),
+              resolved_at: display(i.resolved_at), // Group by resolution date for trend
               mttr: mttr > 0 ? mttr : 0
             };
-          }), 
-        'sys_created_on', 
+          }),
+        'resolved_at', // Group by when resolved, not when created
         timeInterval
       );
+
+      console.log(`[ITSM] MTTR trend groups:`, {
+        totalGroups: Object.keys(mttrGroups).length,
+        dates: Object.keys(mttrGroups).sort()
+      });
 
       const mttrTrends = Object.entries(mttrGroups)
         .sort(([a], [b]) => new Date(a) - new Date(b))
         .map(([date, incidents]) => {
           const mttrValues = incidents.map(i => i.mttr).filter(m => m > 0);
-          const avgMttr = mttrValues.length > 0 ? 
+          const avgMttr = mttrValues.length > 0 ?
             Math.round((mttrValues.reduce((a, b) => a + b, 0) / mttrValues.length) * 10) / 10 : 0;
-          
+
           return {
             date: formatDateLabel(date, timeInterval),
             count: avgMttr,
@@ -129,11 +137,28 @@ export default function TrendsTab({ filters, lastUpdated, services, onLoadingCha
           };
         });
 
+      console.log(`[ITSM] MTTR trends result:`, {
+        dataPoints: mttrTrends.length,
+        dates: mttrTrends.map(t => t.date),
+        values: mttrTrends.map(t => t.count)
+      });
+
       setTrendsData({
         incidentTrends,
         changeTrends,
         slaTrends,
         mttrTrends
+      });
+
+      logTabLoad('Trends', {
+        durationMs: Math.round(performance.now() - t0),
+        dataSummary: {
+          'incident time series': `${incidentTimeSeries.length} raw → ${incidentTrends.length} data points`,
+          'change time series': `${changeTimeSeries.length} raw → ${changeTrends.length} data points`,
+          'sla records': `${slaData.length} raw → ${slaTrends.length} data points`,
+          'resolved (mttr)': `${resolvedIncidents.length} raw → ${mttrTrends.length} data points`,
+          'interval': timeInterval
+        }
       });
 
     } catch (err) {
@@ -266,7 +291,7 @@ export default function TrendsTab({ filters, lastUpdated, services, onLoadingCha
         <div className="insights-grid">
           {generateTrendInsights(trendsData, selectedTrend).map((insight, index) => (
             <div key={index} className={`insight-card ${insight.type}`}>
-              <span className="insight-icon">{insight.icon}</span>
+              <span className="insight-icon">{React.createElement(insight.icon, { size: 24 })}</span>
               <div className="insight-content">
                 <h4>{insight.title}</h4>
                 <p>{insight.description}</p>
@@ -334,7 +359,7 @@ function TrendChart({ data, color, yLabel }) {
               y1={i * 60} 
               x2="800" 
               y2={i * 60}
-              stroke="#e0e0e0"
+              stroke="var(--border-color, #e0e0e0)"
               strokeWidth="1"
             />
           ))}
@@ -342,7 +367,7 @@ function TrendChart({ data, color, yLabel }) {
           {/* Trend line */}
           <polyline
             points={data.map((d, i) => {
-              const x = (i / (data.length - 1)) * 800;
+              const x = (i / Math.max(data.length - 1, 1)) * 800;
               const y = maxValue > 0 ? 240 - ((d.count - minValue) / (maxValue - minValue)) * 240 : 120;
               return `${x},${y}`;
             }).join(' ')}
@@ -353,7 +378,7 @@ function TrendChart({ data, color, yLabel }) {
           
           {/* Data points */}
           {data.map((d, i) => {
-            const x = (i / (data.length - 1)) * 800;
+            const x = (i / Math.max(data.length - 1, 1)) * 800;
             const y = maxValue > 0 ? 240 - ((d.count - minValue) / (maxValue - minValue)) * 240 : 120;
             return (
               <circle
@@ -423,62 +448,59 @@ function generateTrendInsights(trendsData, selectedTrend) {
   const insights = [];
   const { incidentTrends, changeTrends, slaTrends, mttrTrends } = trendsData;
 
-  // Incident insights
   if (selectedTrend === 'incidents' && incidentTrends.length > 0) {
     const trend = calculateTrend(incidentTrends);
     if (trend.includes('Increasing')) {
       insights.push({
         type: 'warning',
-        icon: <TrendingUp size={32} />,
+        icon: TrendingUp,
         title: 'Rising Incident Volume',
-        description: 'Incident creation rate is trending upward - investigate potential causes'
+        description: 'Incident rate trending upward'
       });
     } else if (trend.includes('Decreasing')) {
       insights.push({
         type: 'positive',
-        icon: <TrendingDown size={32} />,
+        icon: TrendingDown,
         title: 'Improving Stability',
-        description: 'Declining incident trend indicates improving service stability'
+        description: 'Incident rate declining'
       });
     }
   }
 
-  // SLA insights
   if (selectedTrend === 'sla' && slaTrends.length > 0) {
     const avgCompliance = calculateAverage(slaTrends.map(d => d.count));
     if (avgCompliance >= 95) {
       insights.push({
         type: 'positive',
-        icon: <Target size={32} />,
+        icon: Target,
         title: 'Excellent SLA Performance',
-        description: `Consistently maintaining ${avgCompliance.toFixed(1)}% compliance`
+        description: `${avgCompliance.toFixed(1)}% average compliance`
       });
     } else if (avgCompliance < 85) {
       insights.push({
         type: 'critical',
-        icon: <AlertTriangle size={32} />,
-        title: 'SLA Performance Issues',
-        description: `Average compliance of ${avgCompliance.toFixed(1)}% requires attention`
+        icon: AlertTriangle,
+        title: 'SLA Below Target',
+        description: `${avgCompliance.toFixed(1)}% average compliance`
       });
     }
   }
 
-  // MTTR insights
   if (selectedTrend === 'mttr' && mttrTrends.length > 0) {
     const trend = calculateTrend(mttrTrends);
     if (trend.includes('Decreasing')) {
       insights.push({
         type: 'positive',
-        icon: <Zap size={32} />,
+        icon: Zap,
         title: 'Improving Resolution Times',
-        description: 'MTTR is trending downward - resolution processes are improving'
+        description: 'MTTR trending downward'
       });
     } else if (trend.includes('Increasing')) {
       insights.push({
         type: 'warning',
-        icon: <Timer size={32} />,
+        icon: Timer,
         title: 'Rising Resolution Times',
-        description: 'MTTR is increasing - review resolution processes and resources'
+        description: 'MTTR trending upward'
       });
     }
   }

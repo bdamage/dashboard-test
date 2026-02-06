@@ -3,6 +3,7 @@ import { AlertTriangle, AlertCircle, CheckCircle, Circle, User, Clock } from 'lu
 import { display, value } from '../utils/fields.js';
 import { groupByTimeInterval } from '../utils/chartUtils.js';
 import MetricCard from './MetricCard.jsx';
+import { logTabLoad } from '../utils/logger.js';
 import './IncidentTab.css';
 
 export default function IncidentTab({ filters, lastUpdated, services, onLoadingChange }) {
@@ -12,7 +13,6 @@ export default function IncidentTab({ filters, lastUpdated, services, onLoadingC
     categoryBreakdown: {},
     timeSeries: []
   });
-  const [selectedPriority, setSelectedPriority] = useState('');
   const [error, setError] = useState(null);
 
   useEffect(() => {
@@ -20,6 +20,7 @@ export default function IncidentTab({ filters, lastUpdated, services, onLoadingC
   }, [filters, lastUpdated, services]);
 
   const loadIncidentData = async () => {
+    const t0 = performance.now();
     try {
       onLoadingChange(true);
       setError(null);
@@ -45,18 +46,42 @@ export default function IncidentTab({ filters, lastUpdated, services, onLoadingC
         timeSeries: timeSeriesData
       });
 
+      // DIAGNOSTIC: Log priority distribution
+      console.log('[ITSM] IncidentTab data loaded:', {
+        openIncidentsCount: openIncidents.length,
+        priorityCounts,
+        hasNoPriorityData: Object.values(priorityCounts).every(count => count === 0),
+        samplePriorities: openIncidents.slice(0, 5).map(inc => ({
+          number: display(inc.number),
+          priority: inc.priority,
+          priorityDisplay: display(inc.priority)
+        }))
+      });
+
+      // Warn if all priority counts are zero but we have incidents
+      if (Object.values(priorityCounts).every(count => count === 0) && openIncidents.length > 0) {
+        console.error('[ITSM] WARNING: Have incidents but all priority counts are zero!', {
+          incidentCount: openIncidents.length,
+          firstIncident: openIncidents[0]
+        });
+      }
+
+      logTabLoad('Incidents', {
+        durationMs: Math.round(performance.now() - t0),
+        dataSummary: {
+          'open incidents': `${openIncidents.length} records`,
+          'priority counts': JSON.stringify(priorityCounts),
+          'categories': `${Object.keys(categoryBreakdown).length} categories`,
+          'time series': `${timeSeriesData.length} data points`
+        }
+      });
+
     } catch (err) {
       console.error('Failed to load incident data:', err);
       setError(err.message);
     } finally {
       onLoadingChange(false);
     }
-  };
-
-  const getIncidentsByPriority = (priority) => {
-    return incidentData.openIncidents.filter(incident => 
-      display(incident.priority) === priority
-    );
   };
 
   const getPriorityIcon = (priority) => {
@@ -84,9 +109,21 @@ export default function IncidentTab({ filters, lastUpdated, services, onLoadingC
     return `/nav_to.do?uri=incident.do?sysparm_query=number=${incidentNumber}`;
   };
 
-  const openIncident = (incidentNumber, incidentSysId) => {
-    const url = getIncidentUrl(incidentNumber);
-    window.open(url, '_blank', 'noopener,noreferrer');
+  const getSafePriority = (incident) => {
+    if (!incident || !incident.priority) {
+      return '4'; // Default to P4
+    }
+
+    // Use value() to get numeric priority, fallback to display() then extract number
+    let priority = value(incident.priority) || display(incident.priority) || '4';
+
+    // Extract numeric part if priority includes label (e.g., "4 - Low" -> "4")
+    const numericMatch = String(priority).match(/^(\d+)/);
+    if (numericMatch) {
+      return numericMatch[1];
+    }
+
+    return priority || '4';
   };
 
   if (error) {
@@ -119,7 +156,6 @@ export default function IncidentTab({ filters, lastUpdated, services, onLoadingC
                 value={count}
                 icon={IconComponent}
                 color={getPriorityColor(priority)}
-                onClick={() => setSelectedPriority(priority)}
               />
             );
           })}
@@ -154,11 +190,14 @@ export default function IncidentTab({ filters, lastUpdated, services, onLoadingC
           <h3>Recent High Priority Incidents</h3>
           <div className="incidents-table">
             {incidentData.openIncidents
-              .filter(incident => ['1', '2'].includes(display(incident.priority)))
+              .filter(incident => {
+                const priority = display(incident.priority);
+                return priority && ['1', '2'].includes(priority);
+              })
               .sort((a, b) => new Date(display(b.sys_created_on)) - new Date(display(a.sys_created_on)))
               .slice(0, 10)
               .map(incident => {
-                const priority = display(incident.priority);
+                const priority = getSafePriority(incident);
                 const PriorityIcon = getPriorityIcon(`P${priority}`);
                 
                 return (
@@ -211,19 +250,36 @@ function SimpleChart({ data }) {
   }
 
   const maxValue = Math.max(...data.map(d => d.count));
+  const gridLines = [0, 25, 50, 75, 100];
 
   return (
-    <div className="simple-chart">
-      {data.map((point, index) => (
-        <div key={index} className="chart-bar">
-          <div 
-            className="bar"
-            style={{ height: `${(point.count / maxValue) * 100}%` }}
-            title={`${point.date}: ${point.count} incidents`}
-          ></div>
-          <div className="bar-label">{point.date}</div>
+    <div className="chart-container">
+      <div className="chart-y-axis">
+        {gridLines.reverse().map(percent => (
+          <div key={percent} className="y-axis-label">
+            {Math.round((maxValue * percent) / 100)}
+          </div>
+        ))}
+      </div>
+      <div className="chart-with-grid">
+        <div className="chart-grid">
+          {[0, 25, 50, 75, 100].map(percent => (
+            <div key={percent} className="grid-line" style={{ bottom: `${percent}%` }} />
+          ))}
         </div>
-      ))}
+        <div className="simple-chart">
+          {data.map((point, index) => (
+            <div key={index} className="chart-bar">
+              <div
+                className="bar"
+                style={{ height: `${(point.count / maxValue) * 100}%` }}
+                title={`${point.date}: ${point.count} incidents`}
+              ></div>
+              <div className="bar-label">{point.date}</div>
+            </div>
+          ))}
+        </div>
+      </div>
     </div>
   );
 }

@@ -1,8 +1,9 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Clipboard, RefreshCw, Target, Zap, BarChart3, Heart } from 'lucide-react';
-import { display, value } from '../utils/fields.js';
-import { calculateAverage, calculateMedian, calculatePercentChange } from '../utils/chartUtils.js';
+import { display } from '../utils/fields.js';
+import { calculateAverage, calculateMedian } from '../utils/chartUtils.js';
 import MetricCard from './MetricCard.jsx';
+import { logTabLoad } from '../utils/logger.js';
 import './OverviewTab.css';
 
 export default function OverviewTab({ filters, lastUpdated, services, onLoadingChange }) {
@@ -12,31 +13,27 @@ export default function OverviewTab({ filters, lastUpdated, services, onLoadingC
     totalChanges: 0,
     slaCompliance: 0,
     avgMTTR: 0,
-    medianMTTR: 0,
-    incidentTrend: 0,
-    changeTrend: 0
+    medianMTTR: 0
   });
 
   const [error, setError] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
 
-  // Memoize the load function to prevent infinite loops
   const loadOverviewData = useCallback(async () => {
-    if (isLoading) return; // Prevent concurrent loads
-    
+    if (isLoading) return;
+    const t0 = performance.now();
+
     try {
-      console.log('Loading overview data...');
       setIsLoading(true);
       onLoadingChange(true);
       setError(null);
 
-      // Load all overview metrics in parallel with timeout
-      const timeout = (ms) => new Promise((_, reject) => 
+      const timeout = (ms) => new Promise((_, reject) =>
         setTimeout(() => reject(new Error('Request timeout')), ms)
       );
 
-      const loadWithTimeout = (promise) => 
-        Promise.race([promise, timeout(10000)]); // 10 second timeout
+      const loadWithTimeout = (promise) =>
+        Promise.race([promise, timeout(10000)]);
 
       const [
         incidents,
@@ -50,20 +47,21 @@ export default function OverviewTab({ filters, lastUpdated, services, onLoadingC
         loadWithTimeout(services.incident.getResolvedIncidents(filters))
       ]);
 
-      // Process results with fallbacks
       const incidentData = incidents.status === 'fulfilled' ? incidents.value : [];
       const changeData = changes.status === 'fulfilled' ? changes.value : [];
       const slaResult = slaData.status === 'fulfilled' ? slaData.value : { rate: 0 };
       const resolvedData = resolvedIncidents.status === 'fulfilled' ? resolvedIncidents.value : [];
 
-      console.log('Data loaded:', {
-        incidents: incidentData.length,
-        changes: changeData.length,
-        sla: slaResult,
-        resolved: resolvedData.length
+      logTabLoad('Overview', {
+        durationMs: Math.round(performance.now() - t0),
+        dataSummary: {
+          'incidents (open)': `${incidentData.length} records (${incidents.status})`,
+          'changes': `${changeData.length} records (${changes.status})`,
+          'sla compliance': `${slaResult.rate || 0}% (${slaData.status})`,
+          'resolved incidents': `${resolvedData.length} records (${resolvedIncidents.status})`
+        }
       });
 
-      // Calculate MTTR
       const mttrValues = resolvedData
         .filter(incident => {
           const resolvedAt = display(incident.resolved_at);
@@ -73,57 +71,43 @@ export default function OverviewTab({ filters, lastUpdated, services, onLoadingC
         .map(incident => {
           const created = new Date(display(incident.sys_created_on));
           const resolved = new Date(display(incident.resolved_at));
-          return (resolved - created) / (1000 * 60 * 60); // hours
+          return (resolved - created) / (1000 * 60 * 60);
         })
         .filter(hours => hours > 0);
 
       const avgMTTR = calculateAverage(mttrValues);
       const medianMTTR = calculateMedian(mttrValues);
 
-      // Calculate simple trends (mock for now)
-      const incidentTrend = incidentData.length > 0 ? (Math.random() - 0.5) * 10 : 0;
-      const changeTrend = changeData.length > 0 ? (Math.random() - 0.5) * 10 : 0;
-
-      const newMetrics = {
+      setMetrics({
         totalIncidents: incidentData.length,
         openIncidents: incidentData.filter(i => display(i.state) !== '6').length,
         totalChanges: changeData.length,
         slaCompliance: slaResult.rate || 0,
         avgMTTR: avgMTTR || 0,
-        medianMTTR: medianMTTR || 0,
-        incidentTrend,
-        changeTrend
-      };
-
-      console.log('Calculated metrics:', newMetrics);
-      setMetrics(newMetrics);
+        medianMTTR: medianMTTR || 0
+      });
 
     } catch (err) {
-      console.error('Failed to load overview data:', err);
+      console.warn('Failed to load overview data:', err.message);
       setError(err.message);
-      
-      // Set fallback metrics
+
       setMetrics({
         totalIncidents: 25,
         openIncidents: 18,
         totalChanges: 12,
         slaCompliance: 92.5,
         avgMTTR: 16.2,
-        medianMTTR: 12.8,
-        incidentTrend: -2.3,
-        changeTrend: 1.8
+        medianMTTR: 12.8
       });
     } finally {
       setIsLoading(false);
       onLoadingChange(false);
-      console.log('Overview data loading complete');
     }
   }, [filters, services, onLoadingChange, isLoading]);
 
-  // Effect with proper dependencies
   useEffect(() => {
     loadOverviewData();
-  }, [lastUpdated]); // Only depend on lastUpdated, not the callback itself
+  }, [lastUpdated]);
 
   if (error && metrics.totalIncidents === 0) {
     return (
@@ -149,7 +133,6 @@ export default function OverviewTab({ filters, lastUpdated, services, onLoadingC
           title="Open Incidents"
           value={metrics.openIncidents}
           icon={Clipboard}
-          trend={metrics.incidentTrend}
           color={metrics.openIncidents > 50 ? 'critical' : metrics.openIncidents > 20 ? 'warning' : 'success'}
           subtitle={`${metrics.totalIncidents} total incidents`}
         />
@@ -158,7 +141,6 @@ export default function OverviewTab({ filters, lastUpdated, services, onLoadingC
           title="Active Changes"
           value={metrics.totalChanges}
           icon={RefreshCw}
-          trend={metrics.changeTrend}
           color="info"
           subtitle="All change requests"
         />
@@ -213,19 +195,11 @@ export default function OverviewTab({ filters, lastUpdated, services, onLoadingC
   );
 }
 
-// Helper functions
 function calculateHealthScore(metrics) {
   let score = 100;
-  
-  // SLA compliance impact
   if (metrics.slaCompliance < 95) score -= (95 - metrics.slaCompliance) * 0.8;
-  
-  // MTTR impact
   if (metrics.avgMTTR > 24) score -= Math.min((metrics.avgMTTR - 24) * 2, 30);
-  
-  // High incident volume impact
   if (metrics.openIncidents > 50) score -= Math.min((metrics.openIncidents - 50) * 0.2, 15);
-
   return Math.max(Math.round(score), 0);
 }
 
@@ -241,42 +215,36 @@ function generateInsights(metrics) {
   if (metrics.slaCompliance >= 95) {
     insights.push({
       type: 'success',
-      title: 'Excellent SLA Performance',
-      description: `SLA compliance at ${metrics.slaCompliance.toFixed(1)}% exceeds target performance levels`
+      title: 'SLA On Target',
+      description: `${metrics.slaCompliance.toFixed(1)}% compliance`
     });
   } else if (metrics.slaCompliance < 85) {
     insights.push({
       type: 'critical',
-      title: 'SLA Performance Below Target',
-      description: `Current compliance of ${metrics.slaCompliance.toFixed(1)}% requires immediate attention`
+      title: 'SLA Below Target',
+      description: `${metrics.slaCompliance.toFixed(1)}% compliance - below 85% threshold`
     });
   }
 
   if (metrics.avgMTTR <= 8) {
     insights.push({
       type: 'success',
-      title: 'Efficient Incident Resolution',
-      description: `Average resolution time of ${metrics.avgMTTR.toFixed(1)} hours meets best practices`
+      title: 'Fast Resolution',
+      description: `${metrics.avgMTTR.toFixed(1)}h average MTTR`
     });
   } else if (metrics.avgMTTR > 24) {
     insights.push({
       type: 'critical',
-      title: 'Extended Resolution Times',
-      description: `High MTTR of ${metrics.avgMTTR.toFixed(1)} hours indicates process inefficiencies`
+      title: 'Slow Resolution',
+      description: `${metrics.avgMTTR.toFixed(1)}h average MTTR - exceeds 24h target`
     });
   }
 
   if (metrics.openIncidents > 100) {
     insights.push({
       type: 'warning',
-      title: 'High Incident Volume',
-      description: `${metrics.openIncidents} open incidents require resource allocation review`
-    });
-  } else if (metrics.openIncidents < 20) {
-    insights.push({
-      type: 'success',
-      title: 'Stable Service Performance',
-      description: 'Low incident volume indicates effective preventive measures'
+      title: 'High Volume',
+      description: `${metrics.openIncidents} open incidents`
     });
   }
 
@@ -284,10 +252,10 @@ function generateInsights(metrics) {
   if (consistency > 8) {
     insights.push({
       type: 'warning',
-      title: 'Resolution Time Variability',
-      description: 'High variance between average and median suggests process inconsistencies'
+      title: 'MTTR Variance',
+      description: `${consistency.toFixed(1)}h gap between average and median - outliers present`
     });
   }
 
-  return insights.slice(0, 4); // Limit to 4 insights
+  return insights.slice(0, 4);
 }

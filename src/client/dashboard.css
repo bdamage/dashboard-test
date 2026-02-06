@@ -290,8 +290,12 @@ body {
   }
 }
 
-/* Smooth transitions for theme changes */
-* {
+/* Theme transitions - scoped to themed elements only */
+.dashboard-app,
+.metric-card,
+.insight-card,
+.tab-button,
+.filter-panel {
   transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
 }
 

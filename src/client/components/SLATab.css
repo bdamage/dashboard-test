@@ -274,7 +274,10 @@
 .sla-gauge-wrapper {
   position: relative;
   width: 200px;
-  height: 100px;
+  height: 120px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
 .sla-gauge-arc {
@@ -284,20 +287,34 @@
   border-bottom: none;
   border-radius: 100px 100px 0 0;
   position: relative;
-  overflow: hidden;
 }
 
 .sla-gauge-needle {
   position: absolute;
-  top: 92px;
-  left: 96px;
-  width: 0;
-  height: 0;
-  border-left: 8px solid transparent;
-  border-right: 8px solid transparent;
-  border-top: 80px solid #f44336;
-  transform-origin: 50% 0%;
+  bottom: 0;
+  left: 50%;
+  width: 4px;
+  height: 80px;
+  background: #f44336;
+  transform-origin: bottom center;
+  transform: translateX(-50%) rotate(-90deg);
   transition: transform 0.5s ease;
+  border-radius: 2px 2px 0 0;
+  z-index: 1;
+}
+
+.sla-gauge-needle::after {
+  content: '';
+  position: absolute;
+  bottom: -6px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 12px;
+  height: 12px;
+  background: var(--bg-primary);
+  border: 3px solid #f44336;
+  border-radius: 50%;
+  z-index: 2;
 }
 
 .sla-gauge-labels {
@@ -353,24 +370,28 @@
   
   .sla-gauge-wrapper {
     width: 150px;
-    height: 75px;
+    height: 90px;
   }
-  
+
   .sla-gauge-arc {
     width: 150px;
     height: 75px;
     border-width: 6px;
     border-radius: 75px 75px 0 0;
   }
-  
+
   .sla-gauge-needle {
-    top: 69px;
-    left: 71px;
-    border-left-width: 6px;
-    border-right-width: 6px;
-    border-top-width: 60px;
+    width: 3px;
+    height: 60px;
   }
-  
+
+  .sla-gauge-needle::after {
+    width: 10px;
+    height: 10px;
+    border-width: 2px;
+    bottom: -5px;
+  }
+
   .sla-gauge-labels {
     width: 150px;
   }

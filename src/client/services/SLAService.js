@@ -1,5 +1,9 @@
 // Simplified SLA Service for ITSM Dashboard
 import { getLast120Days } from '../utils/dateUtils.js';
+import { sanitizeQueryValue } from '../utils/fields.js';
+import { logApiCall, logApiSuccess, logApiError } from '../utils/logger.js';
+
+const SVC = 'SLAService';
 
 export class SLAService {
   constructor() {
@@ -7,28 +11,29 @@ export class SLAService {
     this.baseUrl = `/api/now/table/${this.tableName}`;
   }
 
-  // Simplified query builder
   buildDateQuery(start, end) {
     return `sys_created_on>=${start}^sys_created_on<=${end}`;
   }
 
-  // Get SLA performance data with fallback
   async getSLAPerformance(filters = {}) {
+    const t0 = performance.now();
     try {
       const { start, end } = filters.dateRange || getLast120Days();
       let query = this.buildDateQuery(start, end) + '^task.sys_class_name=incident';
-      
+
       if (filters.priority) {
-        query += `^task.priority=${filters.priority}`;
+        query += `^task.priority=${sanitizeQueryValue(filters.priority)}`;
       }
       if (filters.slaType) {
-        query += `^sla.name=${filters.slaType}`;
+        query += `^sla.name=${sanitizeQueryValue(filters.slaType)}`;
       }
-
-      console.log('SLA query:', query);
 
       const limit = filters.recordLimit || 2000;
-      const response = await fetch(`${this.baseUrl}?sysparm_query=${encodeURIComponent(query)}&sysparm_display_value=all&sysparm_fields=sys_id,task,sla,stage,has_breached,percentage&sysparm_limit=${limit}`, {
+      const url = `${this.baseUrl}?sysparm_query=${encodeURIComponent(query)}&sysparm_display_value=all&sysparm_fields=sys_id,task,sla,stage,has_breached,percentage,sys_created_on&sysparm_limit=${limit}`;
+
+      logApiCall(SVC, 'getSLAPerformance', { url, query, filters });
+
+      const response = await fetch(url, {
         headers: {
           "Accept": "application/json",
           "Content-Type": "application/json",
@@ -41,57 +46,93 @@ export class SLAService {
       }
 
       const data = await response.json();
-      console.log('SLA data loaded:', data.result?.length || 0);
-      return data.result || [];
+      const results = data.result || [];
 
-    } catch (error) {
-      console.error('Failed to fetch SLA performance:', error);
-      return this.getMockSLAData();
-    }
-  }
-
-  // Get SLA breaches
-  async getSLABreaches(filters = {}) {
-    try {
-      const slaData = await this.getSLAPerformance(filters);
-      return slaData.filter(sla => {
-        const breached = sla.has_breached?.display_value || sla.has_breached?.value;
-        return breached === 'true' || breached === true;
-      });
-    } catch (error) {
-      console.error('Failed to fetch SLA breaches:', error);
-      return [];
-    }
-  }
-
-  // Calculate SLA compliance rate
-  async getSLAComplianceRate(filters = {}) {
-    try {
-      const allSLAs = await this.getSLAPerformance(filters);
-      const breachedSLAs = await this.getSLABreaches(filters);
-      
-      if (allSLAs.length === 0) {
-        // Return mock data for demo
-        return { rate: 92.5, total: 100, breached: 7, compliant: 93 };
+      // DIAGNOSTIC: Log first SLA performance record to inspect data structure
+      if (results.length > 0) {
+        console.log('[ITSM] Sample SLA performance data structure:', {
+          fullRecord: results[0],
+          task: results[0].task,
+          sla: results[0].sla,
+          has_breached: results[0].has_breached,
+          has_breached_type: typeof results[0].has_breached,
+          percentage: results[0].percentage,
+          stage: results[0].stage
+        });
       }
 
-      const total = allSLAs.length;
-      const breached = breachedSLAs.length;
-      const compliant = total - breached;
-      const rate = Math.round((compliant / total) * 10000) / 100;
-
-      return { rate, total, breached, compliant };
+      logApiSuccess(SVC, 'getSLAPerformance', {
+        recordCount: results.length,
+        durationMs: Math.round(performance.now() - t0),
+        source: 'api'
+      });
+      return results;
 
     } catch (error) {
-      console.error('Failed to calculate SLA compliance:', error);
+      logApiError(SVC, 'getSLAPerformance', error);
+      const mock = this.getMockSLAData();
+      logApiSuccess(SVC, 'getSLAPerformance', {
+        recordCount: mock.length,
+        durationMs: Math.round(performance.now() - t0),
+        source: 'mock'
+      });
+      return mock;
+    }
+  }
+
+  async getSLABreaches(filters = {}) {
+    const slaData = await this.getSLAPerformance(filters);
+
+    console.log(`[ITSM] Filtering ${slaData.length} SLA records for breaches`);
+
+    const breaches = slaData.filter(sla => {
+      const breached = sla.has_breached?.display_value || sla.has_breached?.value;
+      return breached === 'true' || breached === true;
+    });
+
+    console.log(`[ITSM] Found ${breaches.length} SLA breaches out of ${slaData.length} total SLAs`);
+
+    return breaches;
+  }
+
+  // Calculates compliance from a single fetch instead of double-fetching
+  async getSLAComplianceRate(filters = {}) {
+    const allSLAs = await this.getSLAPerformance(filters);
+
+    if (allSLAs.length === 0) {
+      console.warn('[ITSM] No SLA records found, returning default compliance rate');
       return { rate: 92.5, total: 100, breached: 7, compliant: 93 };
     }
+
+    console.log(`[ITSM] Calculating SLA compliance from ${allSLAs.length} records`);
+
+    const breached = allSLAs.filter(sla => {
+      const b = sla.has_breached?.display_value || sla.has_breached?.value;
+      return b === 'true' || b === true;
+    }).length;
+
+    const total = allSLAs.length;
+    const compliant = total - breached;
+    const rate = Math.round((compliant / total) * 10000) / 100;
+
+    console.log('[ITSM] SLA compliance calculation result:', {
+      rate: rate + '%',
+      total,
+      breached,
+      compliant,
+      breachRate: Math.round((breached / total) * 100) + '%'
+    });
+
+    return { rate, total, breached, compliant };
   }
 
-  // Get SLA types (simplified)
   async getSLATypes() {
+    const t0 = performance.now();
     try {
-      const response = await fetch('/api/now/table/contract_sla?sysparm_display_value=all&sysparm_fields=name&sysparm_limit=20', {
+      const url = '/api/now/table/contract_sla?sysparm_display_value=all&sysparm_fields=name&sysparm_limit=20';
+      logApiCall(SVC, 'getSLATypes', { url });
+
+      const response = await fetch(url, {
         headers: {
           "Accept": "application/json",
           "Content-Type": "application/json",
@@ -104,25 +145,36 @@ export class SLAService {
       }
 
       const data = await response.json();
-      return data.result || [];
+      const results = data.result || [];
+      logApiSuccess(SVC, 'getSLATypes', {
+        recordCount: results.length,
+        durationMs: Math.round(performance.now() - t0),
+        source: 'api'
+      });
+      return results;
     } catch (error) {
-      console.error('Failed to fetch SLA types:', error);
-      return [
+      logApiError(SVC, 'getSLATypes', error);
+      const mock = [
         { name: { display_value: 'Response Time', value: 'response_time' } },
         { name: { display_value: 'Resolution Time', value: 'resolution_time' } }
       ];
+      logApiSuccess(SVC, 'getSLATypes', {
+        recordCount: mock.length,
+        durationMs: Math.round(performance.now() - t0),
+        source: 'mock'
+      });
+      return mock;
     }
   }
 
-  // Mock SLA data for demo/fallback
   getMockSLAData() {
     const mockSLAs = [];
     const now = new Date();
-    
+
     for (let i = 0; i < 50; i++) {
       const createdDate = new Date(now - Math.random() * 120 * 24 * 60 * 60 * 1000);
-      const breached = Math.random() > 0.85; // 15% breach rate
-      
+      const breached = Math.random() > 0.85;
+
       mockSLAs.push({
         sys_id: { display_value: `sla_${i}`, value: `sla_${i}` },
         task: { display_value: `INC000${4000 + i}`, value: `task_${i}` },
@@ -133,7 +185,7 @@ export class SLAService {
         sys_created_on: { display_value: createdDate.toISOString(), value: createdDate.toISOString() }
       });
     }
-    
+
     return mockSLAs;
   }
 }

@@ -156,23 +156,29 @@
   color: white;
   text-align: center;
   min-width: 25px;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
 }
 
 .priority-badge.p1 {
-  background: #f44336;
+  background: var(--error);
+  color: white;
 }
 
 .priority-badge.p2 {
-  background: #FF9800;
+  background: var(--warning);
+  color: white;
 }
 
 .priority-badge.p3 {
-  background: #FFC107;
-  color: var(--text-primary);
+  background: var(--info);
+  color: white;
 }
 
 .priority-badge.p4 {
-  background: #4CAF50;
+  background: var(--success);
+  color: white;
 }
 
 .incident-description {
@@ -206,21 +212,70 @@
   font-size: 1.2rem;
 }
 
+.chart-container {
+  display: flex;
+  gap: 0.5rem;
+  background: var(--bg-primary);
+  border-radius: 8px;
+  padding: 1rem;
+}
+
+.chart-y-axis {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding-right: 0.5rem;
+  min-width: 30px;
+  height: 200px;
+}
+
+.y-axis-label {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  text-align: right;
+  line-height: 1;
+}
+
+.chart-with-grid {
+  flex: 1;
+  position: relative;
+  overflow-x: auto;
+}
+
+.chart-grid {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  pointer-events: none;
+}
+
+.grid-line {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: var(--border-color);
+  opacity: 0.3;
+}
+
 .simple-chart {
   display: flex;
   align-items: end;
   gap: 0.5rem;
   height: 200px;
-  padding: 1rem;
-  background: var(--bg-primary);
-  border-radius: 8px;
-  overflow-x: auto;
+  padding: 0 1rem;
+  position: relative;
 }
 
 .chart-bar {
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: flex-end;
+  flex: 1;
+  height: 100%;
   min-width: 40px;
 }
 
