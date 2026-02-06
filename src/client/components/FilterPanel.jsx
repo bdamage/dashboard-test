@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Filter } from 'lucide-react';
 import { getDateRange } from '../utils/dateUtils.js';
 import './FilterPanel.css';
 
@@ -53,12 +54,12 @@ export default function FilterPanel({ filters, onFilterChange, loading }) {
   return (
     <div className={`filter-panel ${isExpanded ? 'expanded' : ''}`}>
       <div className="filter-header">
-        <button 
+        <button
           className="filter-toggle"
           onClick={() => setIsExpanded(!isExpanded)}
           disabled={loading}
         >
-          🔍 Filters {hasActiveFilters && <span className="filter-indicator">●</span>}
+          <Filter size={16} style={{display: 'inline', marginRight: '6px', verticalAlign: 'middle'}} />Filters {hasActiveFilters && <span className="filter-indicator">●</span>}
           <span className={`arrow ${isExpanded ? 'up' : 'down'}`}>▼</span>
         </button>
         {hasActiveFilters && (
